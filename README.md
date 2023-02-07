@@ -1,0 +1,1 @@
+Another Cards Against Humanity app. Written with Laravel and react.
