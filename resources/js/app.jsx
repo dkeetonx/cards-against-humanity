@@ -6,5 +6,7 @@ import ReactDOM from 'react-dom/client';
 import {JoinDialog} from './components/JoinDialog';
 
 ReactDOM.createRoot(document.getElementById('app')).render(
-    <JoinDialog />
+    <div className="flex justify-center">
+        <JoinDialog />
+    </div>
 );

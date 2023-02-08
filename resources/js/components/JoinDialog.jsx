@@ -1,5 +1,6 @@
 import React from 'react'
 import {TextInput} from './TextInput';
+import {Alert} from './Alert';
 
 export class JoinDialog extends React.Component {
     constructor(props) {
@@ -37,18 +38,21 @@ export class JoinDialog extends React.Component {
 
     render() {
         return (
-            <div className="p-8 w-80 rounded border border-gray-600">
-                <ul className="alert alert-errors">
+            <div className="card card-compact w-96 shadow">
+                <div className="card-body">
                     {Object.keys(this.state.errors).map((field) =>
-                        <li key={field}>{this.state.errors[field]}</li>
+                        <Alert text={this.state.errors[field]} />
                     )}
-                </ul>
+                    <h2 className="card-title">Join a Game</h2>
 
-                <form onSubmit={this.handleSubmit} className="space-y-4">
-                    <TextInput id="room_code" name="room_code" value={this.state.room_code} label="Room Code" placeholder="CODE" maxLength="4" onChange={this.handleInputChange} />
-                    <TextInput id="name" name="name" value={this.state.name} label="Name" placeholder="Name" onChange={this.handleInputChange} />
-                    <input type="submit" className="btn btn-primary rounded-full border border-gray-900 p-2 w-20" name="join" value="Join" />
-                </form>
+                    <form onSubmit={this.handleSubmit} className="">
+                        <TextInput id="room_code" name="room_code" value={this.state.room_code} label="Room" placeholder="CODE" maxLength="4" onChange={this.handleInputChange} />
+                        <TextInput id="name" name="name" value={this.state.name} label="Name" placeholder="Name" onChange={this.handleInputChange} />
+                        <div className="card-actions justify-end">
+                            <input type="submit" className="btn btn-secondary btn-outline" name="join" value="Join" />
+                        </div>
+                    </form>
+                </div>
             </div>
         );
     }
