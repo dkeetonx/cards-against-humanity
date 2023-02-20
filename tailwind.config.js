@@ -10,7 +10,10 @@ module.exports = {
       center: true,
     },
   },
-  plugins: [require("daisyui")],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require("daisyui"),
+  ],
 
   daisyui: {
     styled: true,
