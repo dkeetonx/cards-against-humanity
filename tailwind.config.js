@@ -6,9 +6,6 @@ module.exports = {
   ],
   theme: {
     extend: {},
-    container: {
-      center: true,
-    },
   },
   plugins: [
     require('@tailwindcss/typography'),
@@ -17,12 +14,42 @@ module.exports = {
 
   daisyui: {
     styled: true,
-    themes: true,
+    themes: [
+      "lofi",
+      "light",
+      "dark",
+      "cupcake",
+      "bumblebee",
+      "emerald",
+      "corporate",
+      "synthwave",
+      "retro",
+      "cyberpunk",
+      "valentine",
+      "halloween",
+      "garden",
+      "forest",
+      "aqua",
+      "pastel",
+      "fantasy",
+      "wireframe",
+      "black",
+      "luxury",
+      "dracula",
+      "cmyk",
+      "autumn",
+      "business",
+      "acid",
+      "lemonade",
+      "night",
+      "coffee",
+      "winter"
+    ],
     base: true,
     utils: true,
     logs: true,
     rtl: false,
     prefix: "",
-    darkTheme: "dark"
+    darkTheme: "halloween",
   }
 }

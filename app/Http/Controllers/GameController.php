@@ -2,12 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\GameRoom;
 use App\Models\User;
+use JavaScript;
 
 class GameController extends Controller
 {
+    public function home(Request $request, $code = null)
+    {
+        $gr = GameRoom::where('room_code', $code)->first();
+
+        JavaScript::put([ 'user' => Auth::user(), 'game_room' => $gr ]);
+        return view('welcome');
+    }
     //
     public function join(Request $request)
     {
@@ -16,19 +25,37 @@ class GameController extends Controller
             'name' => 'required|min:2|max:32'
         ]);
 
-        $user = User::find($request->session()->get('user_id'));
+        $user = Auth::user();
 
         if(!$user)
         {
             $user = new User;
         }
-        $user->name = $request->get('name');
-        $user->save();
+        else
+        {
+            $user->leaveGameRoom();
+        }
 
-        $request->session()->put('user_id', $user->id);
-        $request->session()->put('name', $user->name);
         $gr = GameRoom::where('room_code', $request->room_code)->first();
+        $user->name = $request->get('name');
 
-        return ['user_id' => $user->id, 'game_room' => $gr ];
+        if (!$user->game_room_id || $user->game_room_id != $gr->id)
+        {
+            $user->game_room_id = $gr->id;
+            if ($gr->has_waiting_room)
+            {
+                $user->status = "waiting";
+            }
+            else
+            {
+                $user->status = "watching";
+            }
+            $user->save();
+        }
+
+        $user->save();
+        Auth::login($user, true);
+
+        return ['user' => $user, 'game_room' => $gr ];
     }
 }

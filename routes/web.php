@@ -14,7 +14,7 @@ use App\Http\Controllers\GameController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [ GameController::class, 'home' ]);
+Route::get('/{code}', [ GameController::class, 'home' ]);
+
 Route::post('join', [ GameController::class, 'join']);
