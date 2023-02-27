@@ -12,10 +12,41 @@ class GameController extends Controller
 {
     public function home(Request $request, $code = null)
     {
-        $gr = GameRoom::where('room_code', $code)->first();
+        $user = Auth::user();
+        $gr = null;
 
-        JavaScript::put([ 'user' => Auth::user(), 'game_room' => $gr ]);
+        if ($user)
+        {
+            $gr = $user->gameRoom;
+        }
+
+        JavaScript::put([
+            'user' => $user,
+            'game_room' => $gr,
+            'url_room_code' => $code
+        ]);
         return view('welcome');
+    }
+
+    public function name(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|min:2|max:32'
+        ]);
+
+        $user = Auth::user();
+
+        if(!$user)
+        {
+            $user = new User;
+        }
+
+        $user->name = $request->get('name');
+        $user->save();
+
+        Auth::login($user, true);
+
+        return ['user' => $user ];
     }
     //
     public function join(Request $request)
@@ -42,7 +73,13 @@ class GameController extends Controller
         if (!$user->game_room_id || $user->game_room_id != $gr->id)
         {
             $user->game_room_id = $gr->id;
-            if ($gr->has_waiting_room)
+            $user->status = "nothing";
+            $user->save();
+        }
+
+        if ($user->status == "nothing")
+        {
+            if  ($gr->has_waiting_room)
             {
                 $user->status = "waiting";
             }
@@ -50,7 +87,6 @@ class GameController extends Controller
             {
                 $user->status = "watching";
             }
-            $user->save();
         }
 
         $user->save();

@@ -40,6 +40,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function gameRoom()
+    {
+        return $this->belongsTo('App\Models\GameRoom');
+    }
+
     public function leaveGameroom()
     {
         return true;

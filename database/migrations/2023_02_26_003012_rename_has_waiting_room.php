@@ -13,11 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('game_rooms', function (Blueprint $table) {
             //
-            $table->dropColumn('email');
-            $table->dropColumn('email_verified_at');
-            $table->dropColumn('password');
+            $table->renameColumn('has_wating_room', 'has_waiting_room');
         });
     }
 
@@ -28,11 +26,9 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('game_rooms', function (Blueprint $table) {
             //
-            $table->string('email');
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->renameColumn('has_waiting_room', 'has_wating_room');
         });
     }
 };

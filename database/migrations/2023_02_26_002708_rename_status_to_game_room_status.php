@@ -15,9 +15,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             //
-            $table->dropColumn('email');
-            $table->dropColumn('email_verified_at');
-            $table->dropColumn('password');
+            $table->renameColumn('status', 'game_room_status');
         });
     }
 
@@ -30,9 +28,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             //
-            $table->string('email');
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->renameColumn('game_room_status', 'status');
         });
     }
 };

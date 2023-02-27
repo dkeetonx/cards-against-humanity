@@ -15,6 +15,7 @@ use App\Http\Controllers\GameController;
 */
 
 Route::get('/', [ GameController::class, 'home' ]);
-Route::get('/{code}', [ GameController::class, 'home' ]);
+Route::get('/game/{code}', [ GameController::class, 'home' ]);
 
+Route::post('name', [ GameController::class, 'name']);
 Route::post('join', [ GameController::class, 'join']);

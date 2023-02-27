@@ -15,9 +15,8 @@
     <body class="antialiased  min-h-screen flex flex-col">
         <div id="navBar"></div>
         <div id="app" class="container mx-auto flex flex-grow"></div>
+        @include('footer')
         @viteReactRefresh
         @vite('resources/js/app.jsx')
-        @include('footer')
-        <script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
     </body>
 </html>
