@@ -1,21 +1,32 @@
-import React from 'react'
-import {TextInput} from './TextInput';
-import {Alert} from './Alert';
+import React, { useState, useEffect } from 'react'
+import {
+    Outlet,
+    Link,
+    useParams,
+    useLoaderData,
+} from "react-router-dom";
 
-export class Home extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-        }
-    }
+import TextInput from './TextInput';
+import Alert from './Alert';
+import NavBar from './NavBar';
+import Footer from './Footer';
+import LeaveModal from './LeaveModal';
+import { UserContext, useUser } from './AppHooks';
 
-    render() {
-        return (
-            <div className="card bg-base-300 text-base-content shadow w-72 h-96">
-                <div className="card-body items-center text-center">
-                    <h2 className="card-title">Welcome!</h2>
-                </div>
+function Home(props) {
+ 
+    const user = useUser();
+    console.log("home");
+
+    return (
+        <UserContext.Provider value={user}>
+            <NavBar />
+            <div className="container mx-auto flex flex-grow">
+                <Outlet />
             </div>
-        );
-    }
+            <LeaveModal />
+            <Footer />
+        </UserContext.Provider>
+    );
 }
+export default Home;

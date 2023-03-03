@@ -12,9 +12,8 @@
             }
         </style>
     </head>
-    <body class="antialiased  min-h-screen flex flex-col">
-        <div id="navBar"></div>
-        <div id="app" class="container mx-auto flex flex-grow"></div>
+    <body class="antialiased">
+        <div id="app" class="min-h-screen flex flex-col"></div>
         @include('footer')
         @viteReactRefresh
         @vite('resources/js/app.jsx')

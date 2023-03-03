@@ -6,10 +6,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\GameRoom;
 use App\Models\User;
-use JavaScript;
 
 class GameController extends Controller
 {
+    public function user(Request $request)
+    {
+        return Auth::user();
+    }
+
     public function home(Request $request, $code = null)
     {
         $user = Auth::user();
@@ -19,12 +23,6 @@ class GameController extends Controller
         {
             $gr = $user->gameRoom;
         }
-
-        JavaScript::put([
-            'user' => $user,
-            'game_room' => $gr,
-            'url_room_code' => $code
-        ]);
         return view('welcome');
     }
 
@@ -73,19 +71,19 @@ class GameController extends Controller
         if (!$user->game_room_id || $user->game_room_id != $gr->id)
         {
             $user->game_room_id = $gr->id;
-            $user->status = "nothing";
+            $user->game_room_status = "nothing";
             $user->save();
         }
 
-        if ($user->status == "nothing")
+        if ($user->game_room_status == "nothing")
         {
             if  ($gr->has_waiting_room)
             {
-                $user->status = "waiting";
+                $user->game_room_status = "waiting";
             }
             else
             {
-                $user->status = "watching";
+                $user->game_room_status = "watching";
             }
         }
 
@@ -93,5 +91,10 @@ class GameController extends Controller
         Auth::login($user, true);
 
         return ['user' => $user, 'game_room' => $gr ];
+    }
+
+    public function data(Request $request, GameRoom $gameRoom)
+    {
+        return [ $gameRoom ];
     }
 }

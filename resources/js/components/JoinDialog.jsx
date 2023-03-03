@@ -1,88 +1,82 @@
-import React from 'react'
-import {TextInput} from './TextInput';
-import {Alert} from './Alert';
+import React, { useState, useEffect, useContext} from 'react'
+import { Routes, Route, useParams, } from 'react-router-dom';
 
-export class JoinDialog extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            room_code: window.url_room_code,
-            name: window.user != null ? window.user.name : "",
-            processing: false,
-            errors: {},
-        };
+import TextInput from './TextInput';
+import Alert from './Alert';
+import { UserContext } from './AppHooks';
 
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
+function JoinDialog(props) {
+    const user = useContext(UserContext);
+    let [roomCode, setRoomCode] = useState(window.url_room_code);
+    let [name, setName] = useState(user != null ? user.name : "");
+    let [processing, setProcessing] = useState(false);
+    let [errors, setErrors] = useState({});
 
-    handleInputChange(event) {
-        this.setState({[event.target.name]: event.target.value});
-    }
+    useEffect(() => {
+        setName(user != null ? user.name : "");
+    }, [user]);
 
-    handleSubmit(event) {
+    function handleSubmit(event) {
         event.preventDefault();
         console.log("submitted");
-        this.setState({processing: true});
+        setProcessing(true);
 
-        window.axios.post('/join', {
-            room_code: this.state.room_code,
-            name: this.state.name,
+        window.axios.post('/api/join', {
+            room_code: roomCode,
+            name: name,
         })
-        .then((response) => {
-            try {
-                this.setState({
-                    errors: {},
-                    processing: false,
-                });
-                this.props.onJoin(response.data);
-            } catch (e)
-            {
-                console.log(e);
-            }
-        })
-        .catch((error) => {
-            if (error.response) {
-                this.setState({
-                    errors: error.response.data.errors,
-                    processing: false,
-                });
-                console.log(error.response.data);
-            } else if (error.request)
-            {
-                console.log(error.request);
-            } else {
-                throw error;
-            }
-        });
+            .then((response) => {
+                try {
+                    setErrors({});
+                    setProcessing(false);
+                    props.onJoin(response.data);
+                } catch (e) {
+                    console.log(e);
+                }
+            })
+            .catch((error) => {
+
+                if (error.response) {
+                    setErrors(error.response.data.errors);
+                    setProcessing(false);
+                    console.log(error.response.data);
+                } else if (error.request) {
+                    console.log(error.request);
+                } else {
+                    throw error;
+                }
+            });
     }
 
-    render() {
-        return (
+    return (
+        <div className="flex grow flex-col items-center justify-around">
             <div className="card bg-base-300 text-base-content shadow">
                 <div className="card-body">
-                    {Object.keys(this.state.errors).map((field) =>
-                        <Alert text={this.state.errors[field]} key={field}/>
+                    {Object.keys(errors).map((field) =>
+                        <Alert text={errors[field]} key={field} />
                     )}
                     <h2 className="card-title">Join a Game</h2>
-                    <form onSubmit={this.handleSubmit} className="">
-                        <TextInput id="room_code" name="room_code" value={this.state.room_code}
-                            label="Room Code" maxLength="4" className="mb-2"
-                            onChange={this.handleInputChange} />
+                    <form onSubmit={handleSubmit} className="">
+                        <TextInput id="room_code" name="room_code" value={roomCode}
+                            label="Room Code" maxLength="4" className="mb-2" uppercase={true}
+                            onChange={(event) => setRoomCode(event.target.value)} />
 
-                        <TextInput id="name" name="name" value={this.state.name} label="Nickname"
-                            className="mb-2"
-                            onChange={this.handleInputChange} />
+                        <TextInput id="name" name="name" value={name} label="Nickname"
+                            className="mb-2" maxLength="32"
+                            onChange={(event) => setName(event.target.value)} />
 
                         <div className="card-actions justify-end">
                             <button type="submit" name="join"
-                                className={"btn btn-primary w-20 " + (this.state.processing && "loading")} >
-                                { this.state.processing ? "" : "Join" }
+                                className={`btn btn-primary w-20 ${(processing && "loading")}`} >
+                                {processing ? "" : "Join"}
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-        );
-    }
+            <div></div><div></div>
+        </div>
+    );
 }
+
+export default JoinDialog;

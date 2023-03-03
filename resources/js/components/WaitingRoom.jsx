@@ -1,7 +1,5 @@
 import React from 'react'
 
-export class WaitingRoom extends React.Component {
-    render() {
-        return ("");
-    }
+export default function WaitingRoom(props) {
+    return ("");
 }
