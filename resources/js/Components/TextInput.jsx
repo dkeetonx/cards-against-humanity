@@ -1,6 +1,6 @@
 import React from 'react'
 
-function TextInput(props) {
+export default function TextInput(props) {
     return (
         <div className={`relative form-control ${props.className}`}>
             <label htmlFor={props.id}
@@ -17,4 +17,3 @@ function TextInput(props) {
         </div>
     );
 }
-export default TextInput;

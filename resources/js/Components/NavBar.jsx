@@ -9,7 +9,7 @@ import ThemeChanger from './ThemeChanger'
 import TextInput from './TextInput';
 import { UserContext } from './AppHooks';
 
-function NavBar(props) {
+export default function NavBar(props) {
 
     const user = useContext(UserContext);
     const [nameBox, setNameBox] = useState(user != null ? user.name : "");
@@ -24,13 +24,13 @@ function NavBar(props) {
         console.log("submitted");
         setFormRequest({errors: {}, processing: true});
 
-        window.axios.post('/name', {
+        window.axios.post('/api/name', {
             name: nameBox
         })
             .then((response) => {
                 try {
                     setFormRequest({errors: {}, processing: false});
-                    window.setUser(response.data.user);
+                    App.setUser(response.data.user);
                 } catch (e) {
                     console.log(e);
                 }
@@ -66,7 +66,7 @@ function NavBar(props) {
             <div className="flex-none">
                 <div className="dropdown dropdown-end">
                     <label tabIndex={0} className="btn btn-ghost normal-case flex overflow-hidden">
-                        <span className="w-32 truncate">{user.name}</span>
+                        <span className="w-32 truncate text-right">{user.name}</span>
                         <svg className="h-8 w-8 fill-current hidden sm:block" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
                     </label>
 
@@ -92,5 +92,3 @@ function NavBar(props) {
         </div>
     );
 }
-
-export default NavBar;

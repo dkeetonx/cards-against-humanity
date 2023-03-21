@@ -14,7 +14,7 @@ use App\Http\Controllers\GameController;
 |
 */
 
-Route::get('/{anypath?}', [ GameController::class, 'home' ])->where('anypath', '(.*)');
+Route::get('/{anypath?}', [ GameController::class, 'home' ])->where('anypath', '(?!api).*');
 /*Route::get('/', [ GameController::class, 'home' ]);
 Route::get('/create', [ GameController::class, 'home' ]);
 Route::get('join', [ GameController::class, 'home' ]);
@@ -26,5 +26,5 @@ Route::group(['prefix' => '/api/'], function () {
     Route::post('join', [ GameController::class, 'join']);
     
     Route::get('game/{gameRoom}/data', [ GameController::class, 'data']);
-    Route::get('game/{gameRoom}/data', [ GameController::class, 'data']);
+    Route::get('game/{gameRoom}/users', [ GameController::class, 'users']);
 });

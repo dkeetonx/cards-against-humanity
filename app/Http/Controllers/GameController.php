@@ -95,6 +95,6 @@ class GameController extends Controller
 
     public function data(Request $request, GameRoom $gameRoom)
     {
-        return [ $gameRoom ];
+        return $gameRoom;
     }
 }

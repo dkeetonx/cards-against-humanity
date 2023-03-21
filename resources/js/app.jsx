@@ -12,23 +12,11 @@ import {
     defer,
 } from "react-router-dom";
 
-import Game from './components/Game';
-import Home from './components/Home';
-import Create from './components/Create';
-import ErrorPage from './components/ErrorPage';
-
-
-window.game_room = {
-    id: null,
-    room_code: "",
-}
-window.gameRoomChangedEvent = new Event("window.game_room:changed");
-window.setGameRoom = (room_data) => {
-    window.game_room = room_data;
-    console.log("setGameRoom");
-    window.dispatchEvent(window.gameRoomChangedEvent);
-}
-
+import Home from './Pages/Home';
+import JoinDialog from './Pages/JoinDialog';
+import Game from './Pages/Game';
+import Create from './Pages/Create';
+import ErrorPage from './Pages/ErrorPage';
 
 const router = createBrowserRouter([
     {
@@ -37,8 +25,12 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
         children: [
             {
-                path: "/join/:roomCode?",
+                path: "/play/:roomCode",
                 element: <Game />,
+            },
+            {
+                path: "/join/:wantRoomCode?",
+                element: <JoinDialog />,
             },
             {
                 path: "/create",
@@ -50,7 +42,7 @@ const router = createBrowserRouter([
 
 
 ReactDOM.createRoot(document.getElementById('app')).render(
-    //<React.StrictMode>
+    <React.StrictMode>
         <RouterProvider router={router} />
-    //</React.StrictMode>
+    </React.StrictMode>
 );

@@ -1,20 +1,35 @@
-import React, { useState, useEffect, useContext} from 'react'
-import { Routes, Route, useParams, } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useRef } from 'react'
+import { Routes, Route, useParams, useNavigate, useNavigationType, } from 'react-router-dom';
 
-import TextInput from './TextInput';
-import Alert from './Alert';
-import { UserContext } from './AppHooks';
+import TextInput from '../Components/TextInput';
+import Alert from '../Components/Alert';
+import { UserContext, GameRoomContext } from '../Components/AppHooks';
 
-function JoinDialog(props) {
+export default function JoinDialog(props) {
+    const navigate = useNavigate();
+
     const user = useContext(UserContext);
-    let [roomCode, setRoomCode] = useState(window.url_room_code);
-    let [name, setName] = useState(user != null ? user.name : "");
-    let [processing, setProcessing] = useState(false);
-    let [errors, setErrors] = useState({});
+    const gameRoom = useContext(GameRoomContext);
+
+    const { wantRoomCode } = useParams();
+    const [roomCode, setRoomCode] = useState(wantRoomCode);
+
+    const [name, setName] = useState(user != null ? user.name : "");
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         setName(user != null ? user.name : "");
     }, [user]);
+
+    useEffect(() => {
+        if (gameRoom.id && gameRoom.room_code == roomCode) {
+            navigate(`/play/${roomCode}`, { replace: true });
+        }
+        return () => {
+            console.log("JoinDialog unmounting");
+        }
+    }, [roomCode, gameRoom]);
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -48,6 +63,7 @@ function JoinDialog(props) {
             });
     }
 
+
     return (
         <div className="flex grow flex-col items-center justify-around">
             <div className="card bg-base-300 text-base-content shadow">
@@ -78,5 +94,3 @@ function JoinDialog(props) {
         </div>
     );
 }
-
-export default JoinDialog;
