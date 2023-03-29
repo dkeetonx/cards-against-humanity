@@ -25,6 +25,6 @@ Route::group(['prefix' => '/api/'], function () {
     Route::post('name', [ GameController::class, 'name']);
     Route::post('join', [ GameController::class, 'join']);
     
-    Route::get('game/{gameRoom}/data', [ GameController::class, 'data']);
-    Route::get('game/{gameRoom}/users', [ GameController::class, 'users']);
+    Route::get('game', [ GameController::class, 'data']);
+    Route::get('users', [ GameController::class, 'users']);
 });

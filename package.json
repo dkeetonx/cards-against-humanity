@@ -23,6 +23,8 @@
         "vite": "^4.1.1"
     },
     "dependencies": {
+        "@reduxjs/toolkit": "^1.9.3",
+        "react-redux": "^8.0.5",
         "theme-change": "^2.3.0"
     }
 }

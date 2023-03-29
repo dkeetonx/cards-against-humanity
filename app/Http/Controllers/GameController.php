@@ -44,7 +44,7 @@ class GameController extends Controller
 
         Auth::login($user, true);
 
-        return ['user' => $user ];
+        return $user;
     }
     //
     public function join(Request $request)
@@ -93,8 +93,9 @@ class GameController extends Controller
         return ['user' => $user, 'game_room' => $gr ];
     }
 
-    public function data(Request $request, GameRoom $gameRoom)
+    public function data(Request $request)
     {
-        return $gameRoom;
+        $user = Auth::user();
+        return $user->gameRoom;
     }
 }
