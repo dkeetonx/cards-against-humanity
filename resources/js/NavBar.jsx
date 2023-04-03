@@ -2,14 +2,14 @@ import React from 'react'
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import ThemeChanger from './Components/ThemeChanger'
-import UsernameEditor from './Features/User/UsernameEditor';
-import { selectUserName } from './Features/User/userSlice';
+import UsernameEditor from './Features/CurrentUser/UsernameEditor';
+import { selectCurrentUserName } from './Features/CurrentUser/currentUserSlice';
 
-import { setShowLeaveModal } from './Features/Notifications/modalsSlice';
+import { setShowLeaveModal } from './Features/Overlays/overlaysSlice';
 
 export default function NavBar(props) {
 
-    const userName = useSelector(selectUserName);
+    const userName = useSelector(selectCurrentUserName);
     const dispatch = useDispatch();
 
     return (

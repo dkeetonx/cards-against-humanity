@@ -11,7 +11,7 @@ const notificationsAdapter = createEntityAdapter({
 
 const initialState = notificationsAdapter.getInitialState();
 
-let notificationFunctions = {};
+let componentProxy = {};
 
 const notificationsSlice = createSlice({
     name: 'notifications',
@@ -27,7 +27,7 @@ const notificationsSlice = createSlice({
                 action.payload.duration * 1000)
             },
             prepare({ id, priority, extraClasses, duration, component }) {
-                notificationFunctions[id] = component;
+                componentProxy[id] = component;
                 return {
                     payload: {
                         id,
@@ -52,7 +52,7 @@ export const { selectAll: selectAllNotifications } =
         console.log(state.notifications);
         let entities = {};
         for (const [id, value] of Object.entries(state.notifications.entities)) {
-            entities[id] = { ...value, component: notificationFunctions[id] };
+            entities[id] = { ...value, component: componentProxy[id] };
         }
         return {
             ids: state.notifications.ids,

@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import TextInput from '../../Components/TextInput';
 import { selectGameCode, leaveGame } from './gameSlice';
 
-import { setShowLeaveModal, selectShowLeaveModal } from '../Notifications/modalsSlice';
+import { setShowLeaveModal, selectShowLeaveModal } from '../Overlays/overlaysSlice';
 
 export default function LeaveModal(props) {
     const gameCode = useSelector(selectGameCode);

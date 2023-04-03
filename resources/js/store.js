@@ -1,16 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit'
-import userReducer from './Features/User/userSlice';
+import currentUserReducer from './Features/CurrentUser/currentUserSlice';
 import gameReducer from './Features/Game/gameSlice';
 //import usersReducer from './Features/Users/usersSlice';
-import notificationsReducer from './Features/Notifications/notificationsSlice';
-import modalsReducer from './Features/Notifications/modalsSlice';
+import notificationsReducer from './Features/Overlays/notificationsSlice';
+import overlaysReducer from './Features/Overlays/overlaysSlice';
 
 export default configureStore({
   reducer: {
-    user: userReducer,
+    currentUser: currentUserReducer,
     game: gameReducer,
     //users: usersReducer,
     notifications: notificationsReducer,
-    modals: modalsReducer,
+    overlays: overlaysReducer,
   }
 })

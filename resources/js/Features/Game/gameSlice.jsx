@@ -3,29 +3,34 @@ import {
     createAsyncThunk,
     createEntityAdapter,
 } from '@reduxjs/toolkit';
+import getStore from '../../getStore';
 
-function initializeEcho(id) {
+function initializeEcho(id, thunkAPI) {
     console.log(`initializing echo App.Models.GameRoom.${id}`);
     window.Echo.private(`App.Models.GameRoom.${id}`)
         .listen('GameChangedOnServer', () => { });
 }
 
-export const fetchGame = createAsyncThunk('game/fetchGame', async (oldGameId) => {
-    const response = await window.axios.get(`/api/game`);
-    const game_data = response.data;
+export const fetchGame = createAsyncThunk(
+    'game/fetchGame',
+    async (_, thunkAPI) => {
+        const { getState } = thunkAPI;
+        const oldGameId = selectGameId(getState());
+        const { data: game } = await window.axios.get(`/api/game`);
 
-    console.log(`game_data.id = ${game_data.id} gameId = ${oldGameId}`);
+        console.log(`game.id = ${game.id} oldGameId = ${oldGameId}`);
 
-    if (game_data.id !== oldGameId) {
-        initializeEcho(game_data.id);
+        if (game.id !== oldGameId) {
+            initializeEcho(game.id, thunkAPI);
+        }
+
+        return game;
     }
+);
 
-    return game_data;
-});
-
-export const leaveGame = createAsyncThunk('game/leaveGAme', async () => {
-    const response = await window.axios.post('/leave', {});
-    return response.data;
+export const leaveGame = createAsyncThunk('game/leaveGame', async () => {
+    const { data } = await window.axios.post('/leave', {});
+    return data;
 });
 
 const gameSlice = createSlice({

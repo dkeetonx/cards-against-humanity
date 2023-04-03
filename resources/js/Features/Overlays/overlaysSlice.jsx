@@ -5,8 +5,8 @@ import {
 } from '@reduxjs/toolkit';
 
 
-export const modalsSlice = createSlice({
-    name: "modals",
+export const overlaysSlice = createSlice({
+    name: "overlays",
     initialState: {
         ShowLeaveModal: false,
         ShowRejoin: false,
@@ -17,9 +17,9 @@ export const modalsSlice = createSlice({
     }
 })
 
-export const { setShowLeaveModal, setShowRejoin } = modalsSlice.actions;
+export const { setShowLeaveModal, setShowRejoin } = overlaysSlice.actions;
 
-export default modalsSlice.reducer;
+export default overlaysSlice.reducer;
 
-export const selectShowLeaveModal = (state) => state.modals.ShowLeaveModal;
-export const selectShowRejoin = state => state.modals.ShowRejoin;
+export const selectShowLeaveModal = (state) => state.overlays.ShowLeaveModal;
+export const selectShowRejoin = state => state.overlays.ShowRejoin;

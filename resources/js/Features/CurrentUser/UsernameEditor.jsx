@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import {
-    selectUserName,
-    updateUser,
-} from './userSlice';
+    selectCurrentUserName,
+    updateCurrentUser,
+} from './currentUserSlice';
 import TextInput from '../../Components/TextInput';
 
 export default function UserNameEditor() {
-    const userName = useSelector(selectUserName);
+    const userName = useSelector(selectCurrentUserName);
     const [nameError, setNameError] = useState(null);
 
     const [nameBox, setNameBox] = useState(userName);
@@ -24,7 +24,7 @@ export default function UserNameEditor() {
 
         try {
             setNameError(null);
-            await dispatch(updateUser({name: nameBox})).unwrap();
+            await dispatch(updateCurrentUser({name: nameBox})).unwrap();
         } catch (error) {
             if (error.errors) {
                 console.log(error.errors);

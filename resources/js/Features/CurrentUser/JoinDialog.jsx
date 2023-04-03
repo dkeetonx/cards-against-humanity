@@ -5,10 +5,10 @@ import TextInput from '../../Components/TextInput';
 
 import { useSelector, useDispatch } from 'react-redux';
 import {
-    selectUserName,
-    selectUserId,
+    selectCurrentUserName,
+    selectCurrentUserId,
     joinGame,
-} from './userSlice';
+} from './currentUserSlice';
 
 import {
     selectGameId,
@@ -16,11 +16,11 @@ import {
     canUpdate,
 } from '../Game/gameSlice';
 
-import { setShowRejoin } from '../Notifications/modalsSlice';
+import { setShowRejoin } from '../Overlays/overlaysSlice';
 
 export default function JoinDialog(props) {
 
-    const userName = useSelector(selectUserName);
+    const userName = useSelector(selectCurrentUserName);
     const gameId = useSelector(selectGameId);
     const gameStoreStatus = useSelector(selectGameStoreStatus);
     const dispatch = useDispatch();

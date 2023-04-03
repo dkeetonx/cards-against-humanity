@@ -11,23 +11,23 @@ import {
 import store from './store';
 
 import {
-    selectUserId,
-    fetchUser,
-    selectUserStoreStatus,
-    selectUserGameId,
-} from './Features/User/userSlice';
+    selectCurrentUserId,
+    fetchCurrentUser,
+    selectCurrentUserCanFetch,
+    selectCurrentUserGameId,
+} from './Features/CurrentUser/currentUserSlice';
 import { fetchGame, selectGameId } from './Features/Game/gameSlice';
 
 import { Provider, useSelector, useDispatch } from 'react-redux'
 
-import JoinDialog from './Features/User/JoinDialog';
+import JoinDialog from './Features/CurrentUser/JoinDialog';
 import Game from './Features/Game/Game';
 import Create from './Features/Game/Create';
 import ErrorPage from './ErrorPage';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import LeaveModal from './Features/Game/LeaveModal';
-import Snackbar from './Features/Notifications/Snackbar';
+import Snackbar from './Features/Overlays/Snackbar';
 
 
 const router = createBrowserRouter([
@@ -53,23 +53,21 @@ const router = createBrowserRouter([
 ]);
 
 function Home(props) {
+    const userGameId = useSelector(selectCurrentUserGameId);
+    const currentUserCanFetch = useSelector(selectCurrentUserCanFetch)
 
-    const userId = useSelector(selectUserId);
-    const userGameId = useSelector(selectUserGameId);
-    const gameId = useSelector(selectGameId);
-
-    const userStoreStatus = useSelector(selectUserStoreStatus);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (userStoreStatus === 'idle')
-            dispatch(fetchUser(userId));
-    }, [userId, dispatch])
+        if (currentUserCanFetch) {
+            dispatch(fetchCurrentUser()).unwrap();
+        }
+    }, [dispatch])
 
 
     useEffect(() => {
         if (userGameId !== null) {
-            dispatch(fetchGame(gameId));
+            dispatch(fetchGame()).unwrap();
         }
     }, [userGameId, dispatch]);
 

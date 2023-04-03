@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
-import { setShowLeaveModal } from './modalsSlice.jsx';
+import { setShowLeaveModal } from './overlaysSlice.jsx';
 
 function RejoinGame() {
     const dispatch = useDispatch();

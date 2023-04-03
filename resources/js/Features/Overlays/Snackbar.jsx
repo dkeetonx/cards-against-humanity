@@ -7,7 +7,7 @@ import {
 } from './notificationsSlice';
 import RejoinGame from './RejoinGame';
 
-import { selectShowRejoin } from './modalsSlice';
+import { selectShowRejoin } from './overlaysSlice';
 
 export default function Snackbar(props) {
 
