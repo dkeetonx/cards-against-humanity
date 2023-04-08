@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route,  useParams, redirect } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
     selectGameCode,
+    selectGameId,
 } from './gameSlice';
-
-import TextInput from '../../Components/TextInput';
-import Alert from '../../Components/Alert';
-import WaitingRoom from '../../Components/WaitingRoom';
+import { setShowRejoin } from '../Overlays/overlaysSlice';
 
 export default function Game() {
-    let { roomCode } = useParams();
-    let [ waiting, setWaiting ] = useState(false);
+    const gameId = useSelector(selectGameId);
+    const gameCode = useSelector(selectGameCode);
+    const { urlRoomCode } = useParams();
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (gameCode !== urlRoomCode) {
+            dispatch(setShowRejoin(false));
+        }
+    }, [gameId, dispatch]);
 
     return ("");
 }

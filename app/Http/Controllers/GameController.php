@@ -93,9 +93,55 @@ class GameController extends Controller
         return ['user' => $user, 'game_room' => $gr ];
     }
 
+    public function leave(Request $request)
+    {
+        $user = Auth::user();
+        $user->leaveGameRoom();
+        return $user;
+    }
+
     public function data(Request $request)
     {
         $user = Auth::user();
         return $user->gameRoom;
+    }
+
+    public function create(Request $request)
+    {
+        $this->name($request);
+        $request->validate([
+            "max_player_count" => 'integer|between:2,32',
+            "has_waiting_room" => 'boolean',
+            "two_question_cards" => 'boolean',
+            "allow_hand_redraw" => 'boolean',
+            "question_card_timer" => 'integer|between:2,32',
+            "answer_card_timer" => 'integer|between:2,32',
+            "winning_score" => 'integer',
+        ]);
+
+        $user = Auth::user();
+        $user->leaveGameRoom();
+
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $retries = 0;
+        do {
+            $code = "";
+            for ($i = 0; $i < 4; $i++)
+            {
+                $index = rand(0, strlen($chars) - 1);
+                $code .= $chars[$index];
+            }
+        } while (GameRoom::where('room_code', $code)->count() > 0 && $retries++ < 10);
+
+        $gameRoom = GameRoom::create($request->all());
+        $gameRoom->room_code = $code;
+        $gameRoom->owner_id = $user->id;
+        $gameRoom->progress = "pregame";
+        $gameRoom->save();
+
+        $user->game_room_id = $gameRoom->id;
+        $user->save();
+
+        return $gameRoom;
     }
 }

@@ -3,12 +3,14 @@ import {
     createAsyncThunk,
     createEntityAdapter,
 } from '@reduxjs/toolkit';
-import getStore from '../../getStore';
+import { notifyOfErrors } from '../Overlays/notificationsSlice';
 
 function initializeEcho(id, thunkAPI) {
     console.log(`initializing echo App.Models.GameRoom.${id}`);
     window.Echo.private(`App.Models.GameRoom.${id}`)
-        .listen('GameChangedOnServer', () => { });
+        .listen('GameUpdate', (game_data) => { 
+            
+        });
 }
 
 export const fetchGame = createAsyncThunk(
@@ -28,15 +30,38 @@ export const fetchGame = createAsyncThunk(
     }
 );
 
+export const createGame = createAsyncThunk(
+    'game/createGame',
+    async (game_data, thunkAPI) => {
+        const { getState, rejectWithValue } = thunkAPI;
+        const oldGameId = selectGameId(getState());
+
+        try {
+            const { data: game } = await window.axios.post('/api/create', game_data);
+
+            if (game.id !== oldGameId) {
+                initializeEcho(game.id, thunkAPI);
+            }
+
+            return game;
+        }
+        catch (err) {
+            if (err.response) {
+                notifyOfErrors(err.response.data, thunkAPI);
+                return rejectWithValue(err.response.data);
+            }
+        }
+    });
+
 export const leaveGame = createAsyncThunk('game/leaveGame', async () => {
-    const { data } = await window.axios.post('/leave', {});
+    const { data } = await window.axios.post('/api/leave', {});
     return data;
 });
 
 const gameSlice = createSlice({
     name: 'game',
     initialState: {
-        store_status: 'idle',
+        fetchStatus: 'idle',
         errors: {},
 
         id: null,
@@ -44,28 +69,34 @@ const gameSlice = createSlice({
     },
     reducers: {
         setGame(state, action) {
-
+            return { ...state, fetchStatus: 'initialized', ...action.payload };
         }
     },
     extraReducers(builder) {
         builder
-            .addCase(fetchGame.fulfilled, (state, action) => {
-                return { ...state, store_status: 'initialized', ...action.payload };
+            .addCase(fetchGame.fulfilled, (state, { payload }) => {
+                return gameSlice.reducer(state, { type: 'game/setGame', payload })
             })
             .addCase(fetchGame.pending, (state, action) => {
-                state.store_status = 'loading';
+                state.fetchStatus = 'loading';
             })
             .addCase(fetchGame.rejected, (state, action) => {
-                state.store_status = 'failed';
+                state.fetchStatus = 'failed';
                 state.errors = action.error.message;
             })
             .addCase(leaveGame.fulfilled, (state, action) => {
                 console.log("left game");
-                return { store_status: 'initialized' }
+                return { fetchStatus: 'initialized' }
             })
             .addCase(leaveGame.pending, (state, action) => {
-                state.store_status = 'loading';
+                state.fetchStatus = 'loading';
             })
+            .addCase(createGame.pending, (state, { payload }) => {
+                return gameSlice.reducer(state, { type: 'game/setGame', payload })
+            })
+            .addCase(createGame.fulfilled, (state, { payload }) => {
+                return gameSlice.reducer(state, { type: 'game/setGame', payload })
+            });
     }
 });
 
@@ -74,8 +105,8 @@ export default gameSlice.reducer;
 export const canUpdate = (status) => status !== 'loading';
 
 
-export const selectGameStoreStatus = (state) => state.game.store_status;
-export const selectGameStoreErrors = (state) => state.game.errors;
+export const selectGameFetchStatus = (state) => state.game.fetchStatus;
+export const selectGameErrors = (state) => state.game.errors;
 
 export const selectGame = (state) => state.game;
 export const selectGameId = (state) => state.game.id;

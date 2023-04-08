@@ -76,10 +76,10 @@ function Home(props) {
     return (
         <>
             <NavBar />
-            <div className="relative container mx-auto flex flex-grow">
+            <div className="container mx-auto flex flex-grow overflow-auto">
                 <Outlet />
-                <Snackbar />
             </div>
+            <Snackbar />
             {/*<Footer />*/}
             <LeaveModal />
         </>
@@ -88,11 +88,11 @@ function Home(props) {
 
 function start() {
     return (
-        <React.StrictMode>
             <Provider store={store}>
+        <React.StrictMode>
                 <RouterProvider router={router} />
+                </React.StrictMode>
             </Provider>
-        </React.StrictMode>
     );
 }
 

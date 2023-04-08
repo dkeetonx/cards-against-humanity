@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import TextInput from '../../Components/TextInput';
 import { selectGameCode, leaveGame } from './gameSlice';
 
-import { setShowLeaveModal, selectShowLeaveModal } from '../Overlays/overlaysSlice';
+import { setShowLeaveModal, selectShowLeaveModal, setShowRejoin } from '../Overlays/overlaysSlice';
 
 export default function LeaveModal(props) {
     const gameCode = useSelector(selectGameCode);
@@ -13,6 +13,7 @@ export default function LeaveModal(props) {
     async function handleLeave() {
         console.log("leaving");
         dispatch(setShowLeaveModal(false));
+        dispatch(setShowRejoin(false));
         await dispatch(leaveGame()).unwrap();
     }
 

@@ -1,4 +1,5 @@
 import {
+    nanoid,
     createSlice,
     createAsyncThunk,
     createEntityAdapter,
@@ -24,7 +25,7 @@ const notificationsSlice = createSlice({
                     const store = getStore();
                     store.dispatch(dismissNotification(action.payload.id));
                 },
-                action.payload.duration * 1000)
+                    action.payload.duration * 1000)
             },
             prepare({ id, priority, extraClasses, duration, component }) {
                 componentProxy[id] = component;
@@ -49,7 +50,6 @@ export default notificationsSlice.reducer;
 
 export const { selectAll: selectAllNotifications } =
     notificationsAdapter.getSelectors(state => {
-        console.log(state.notifications);
         let entities = {};
         for (const [id, value] of Object.entries(state.notifications.entities)) {
             entities[id] = { ...value, component: componentProxy[id] };
@@ -59,3 +59,15 @@ export const { selectAll: selectAllNotifications } =
             entities,
         };
     });
+
+export function notifyOfErrors({ errors }) {
+    Object.values(errors).forEach(message => {
+        getStore().dispatch(addNotification({
+            id: nanoid(),
+            priority: 5,
+            duration: 5,
+            extraClasses: "alert-warning",
+            component: () => <p className="text-sm">{message}</p>,
+        }));
+    });
+}

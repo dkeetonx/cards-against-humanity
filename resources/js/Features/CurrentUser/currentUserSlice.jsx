@@ -1,15 +1,28 @@
 import {
-    nanoid,
     createSlice,
     createAsyncThunk,
 } from '@reduxjs/toolkit';
-import { addNotification } from '../Overlays/notificationsSlice';
+import { notifyOfErrors } from '../Overlays/notificationsSlice';
 import getStore from '../../getStore';
 
-function initializeEcho(id) {
-    console.log(`initializing echo App.Models.User.${id}`);
-    window.Echo.private(`App.Models.User.${id}`)
-        .listen('UserChangedOnServer', () => { });
+function initializeEcho({ id, oldUserId }, thunkAPI) {
+    const { dispatch } = thunkAPI;
+    console.log(`user.id = ${id} oldUserId = ${oldUserId}`)
+
+    if (oldUserId !== null) {
+        console.log(`leaving App.Models.User.${oldUserId}`)
+        window.Echo.leave(`App.Models.User.${oldUserId}`);
+    }
+
+    if (id !== oldUserId) {
+        console.log(`initializing echo App.Models.User.${id}`);
+        window.Echo.private(`App.Models.User.${id}`)
+            .listen('UserUpdated', (user_data) => {
+                console.log("UserUpdated");
+                console.log(user_data);
+                dispatch(setCurrentUser(user_data));
+            });
+    }
 }
 
 export const fetchCurrentUser = createAsyncThunk(
@@ -21,25 +34,13 @@ export const fetchCurrentUser = createAsyncThunk(
         const { data: user } = await window.axios.get('/api/user');
 
         if (user.id !== oldUserId) {
-            initializeEcho(user.id);
+            initializeEcho({ id: user.id, oldUserId }, thunkAPI);
         }
         delete user.game_room;
 
         return user;
     }
 );
-
-function notifyOfErrors({ errors }) {
-    Object.values(errors).forEach(message => {
-        getStore().dispatch(addNotification({
-            id: nanoid(),
-            priority: 5,
-            duration: 5,
-            extraClasses: "alert-warning",
-            component: () => <p className="text-sm">{message}</p>,
-        }));
-    });
-}
 
 export const updateCurrentUser = createAsyncThunk(
     'currentUser/updateCurrentUser',
@@ -52,7 +53,7 @@ export const updateCurrentUser = createAsyncThunk(
             delete user.game_room;
 
             if (user.id !== oldUserId) {
-                initializeEcho(user.id, thunkAPI);
+                initializeEcho({ id: user.id, oldUserId }, thunkAPI);
             }
             return user;
 
@@ -78,7 +79,7 @@ export const joinGame = createAsyncThunk(
             const { user } = await window.axios.post('/api/join', join_data);
 
             if (user.id !== oldUserId) {
-                initializeEcho(user.id, thunkAPI);
+                initializeEcho({ id: user.id, oldUserId }, thunkAPI);
             }
 
             return user;
@@ -88,7 +89,7 @@ export const joinGame = createAsyncThunk(
                 notifyOfErrors(err.response.data, thunkAPI);
                 return rejectWithValue(err.response.data);
             }
-            throw error;
+            throw err;
         }
     }
 );
@@ -102,7 +103,7 @@ const currentUserSlice = createSlice({
         id: null,
         name: "",
         game_room_id: null,
-        game_room_status: "nothing",
+        status: "nothing",
     },
     reducers: {
         setCurrentUser(state, action) {
@@ -111,8 +112,8 @@ const currentUserSlice = createSlice({
     },
     extraReducers(builder) {
         builder
-            .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-                return currentUserSlice.reducer(state, { type: 'currentUser/setCurrentUser', payload: action.payload });
+            .addCase(fetchCurrentUser.fulfilled, (state, { payload }) => {
+                return currentUserSlice.reducer(state, { type: 'currentUser/setCurrentUser', payload });
             })
             .addCase(fetchCurrentUser.pending, (state, action) => {
                 state.fetchStatus = 'loading';
@@ -121,8 +122,8 @@ const currentUserSlice = createSlice({
                 state.fetchStatus = 'failed';
                 state.errors = action.error.errors;
             })
-            .addCase(updateCurrentUser.fulfilled, (state, action) => {
-                return currentUserSlice.reducer(state, { type: 'currentUser/setCurrentUser', payload: action.payload });
+            .addCase(updateCurrentUser.fulfilled, (state, { payload }) => {
+                return currentUserSlice.reducer(state, { type: 'currentUser/setCurrentUser', payload });
             })
             .addCase(updateCurrentUser.pending, (state, action) => {
                 state.fetchStatus = 'loading';
@@ -131,8 +132,8 @@ const currentUserSlice = createSlice({
                 state.fetchStatus = 'failed';
                 state.errors = action.payload.errors ?? {};
             })
-            .addCase(joinGame.fulfilled, (state, action) => {
-                return currentUserSlice.reducer(state, { type: 'currentUser/setCurrentUser', payload: action.payload });
+            .addCase(joinGame.fulfilled, (state, { payload }) => {
+                return currentUserSlice.reducer(state, { type: 'currentUser/setCurrentUser', payload });
             })
             .addCase(joinGame.pending, (state, action) => {
                 state.fetchStatus = 'loading';
@@ -157,5 +158,5 @@ export const selectCurrentUser = (state) => state.currentUser;
 export const selectCurrentUserId = (state) => state.currentUser.id;
 export const selectCurrentUserName = (state) => state.currentUser.name;
 export const selectCurrentUserGameId = (state) => state.currentUser.game_room_id;
-export const selectCurrentUserStatus = (state) => state.currentUser.game_room_status;
+export const selectCurrentUserStatus = (state) => state.currentUser.status;
 

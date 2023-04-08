@@ -12,9 +12,8 @@
             }
         </style>
     </head>
-    <body class="antialiased overflwo-hidden">
-        <div id="app" class="min-h-screen flex flex-col"></div>
-        @include('footer')
+    <body class="antialiased">
+        <div id="app" class="min-h-screen max-h-screen flex flex-col"></div>
         @viteReactRefresh
         @vite('resources/js/app.jsx')
     </body>

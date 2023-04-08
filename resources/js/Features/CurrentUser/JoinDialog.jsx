@@ -12,7 +12,7 @@ import {
 
 import {
     selectGameId,
-    selectGameStoreStatus,
+    selectGameFetchStatus,
     canUpdate,
 } from '../Game/gameSlice';
 
@@ -22,7 +22,7 @@ export default function JoinDialog(props) {
 
     const userName = useSelector(selectCurrentUserName);
     const gameId = useSelector(selectGameId);
-    const gameStoreStatus = useSelector(selectGameStoreStatus);
+    const gameFetchStatus = useSelector(selectGameFetchStatus);
     const dispatch = useDispatch();
 
     const [codeError, setCodeError] = useState(null);
@@ -43,13 +43,13 @@ export default function JoinDialog(props) {
         if (gameId) {
             dispatch(setShowRejoin(true));
         }
-    }, [gameId]);
+    }, [gameId, dispatch]);
 
     async function handleSubmit(event) {
         event.preventDefault();
-        console.log("submitted");
+        console.log("JoinDialog Submitted");
 
-        if (canUpdate(gameStoreStatus)) {
+        if (canUpdate(gameFetchStatus)) {
             setProcessing(true);
             try {
                 await dispatch(joinGame({
@@ -91,7 +91,7 @@ export default function JoinDialog(props) {
 
                         <TextInput id="name" name="name" value={nameBox} label="Nickname"
                             className="mb-2" maxLength="32"
-                            tooltip={nameError}
+                            tooltipText={nameError}
                             tooltipExtraClasses="tooltip-top tooltip-warning"
                             inputExtraClasses={(nameError && "input-warning border-2")}
                             onChange={(event) => { setNameBox(event.target.value); setNameError(null) }} />
