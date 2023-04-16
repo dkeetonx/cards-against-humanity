@@ -4,12 +4,20 @@ import {
     createEntityAdapter,
 } from '@reduxjs/toolkit';
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
+import { selectCurrentUser } from '../CurrentUser/currentUserSlice';
 
 function initializeEcho(id, thunkAPI) {
+    const { dispatch } = thunkAPI;
     console.log(`initializing echo App.Models.GameRoom.${id}`);
     window.Echo.private(`App.Models.GameRoom.${id}`)
         .listen('GameUpdate', (game_data) => { 
-            
+            console.log("GameUpdated");
+            console.log(game_data);
+            const currentUser = dispatch(selectCurrentUser)
+            if (currentUser.game_room_id === game_data.id)
+            {
+                dispatch(setGame(game_data));
+            }
         });
 }
 
@@ -20,7 +28,9 @@ export const fetchGame = createAsyncThunk(
         const oldGameId = selectGameId(getState());
         const { data: game } = await window.axios.get(`/api/game`);
 
-        console.log(`game.id = ${game.id} oldGameId = ${oldGameId}`);
+        if (!game) {
+            return null;
+        }
 
         if (game.id !== oldGameId) {
             initializeEcho(game.id, thunkAPI);
@@ -58,18 +68,35 @@ export const leaveGame = createAsyncThunk('game/leaveGame', async () => {
     return data;
 });
 
+const initialState = {
+    storeStatus: 'prestart',
+    fetchStatus: 'idle',
+    errors: {},
+
+    id: null,
+    room_code: "",
+    deadline: new Date().getTime(),
+};
+
 const gameSlice = createSlice({
     name: 'game',
-    initialState: {
-        fetchStatus: 'idle',
-        errors: {},
-
-        id: null,
-        room_code: "",
-    },
+    initialState,
     reducers: {
         setGame(state, action) {
-            return { ...state, fetchStatus: 'initialized', ...action.payload };
+            return {
+                ...state,
+                ...action.payload,
+                storeStatus: 'initialized',
+                fetchStatus: 'idle',
+            };
+        },
+        setNullGame(state, action) {
+            return {
+                ...initialState,
+                storeStatus: 'initialized',
+                fetchStatus: state.fetchStatus,
+                errors: state.errors
+            };
         }
     },
     extraReducers(builder) {
@@ -85,8 +112,7 @@ const gameSlice = createSlice({
                 state.errors = action.error.message;
             })
             .addCase(leaveGame.fulfilled, (state, action) => {
-                console.log("left game");
-                return { fetchStatus: 'initialized' }
+                return { fetchStatus: 'idle' }
             })
             .addCase(leaveGame.pending, (state, action) => {
                 state.fetchStatus = 'loading';
@@ -102,13 +128,17 @@ const gameSlice = createSlice({
 
 export default gameSlice.reducer;
 
+export const { setGame, setNullGame } = gameSlice.actions;
+
 export const canUpdate = (status) => status !== 'loading';
 
 
+export const selectGameStoreStatus = (state) => state.game.storeStatus;
 export const selectGameFetchStatus = (state) => state.game.fetchStatus;
 export const selectGameErrors = (state) => state.game.errors;
 
 export const selectGame = (state) => state.game;
 export const selectGameId = (state) => state.game.id;
 export const selectGameCode = (state) => state.game.room_code;
-
+export const selectGameDeadline = (state) => state.game.deadline;
+export const selectGameOwnerId = (state) => state.game.owner_id;

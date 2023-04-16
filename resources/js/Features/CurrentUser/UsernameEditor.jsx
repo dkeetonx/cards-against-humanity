@@ -48,9 +48,9 @@ export default function UserNameEditor() {
                 maxLength="32"
                 tooltipText={nameError}
                 tooltipExtraClasses="tooltip-warning tooltip-bottom"
-                inputExtraClasses={"pr-14 " + (nameError && "input-warning")}
+                inputExtraClasses={`w-full pr-14 ${nameError && "input-warning"}`}
                 onChange={(event) => { setNameBox(event.target.value); setNameError(null) }}>
-                <button className="absolute btn btn-secondary mt-3 top-0 right-0 w-12">U</button>
+                <button className="absolute btn btn-xs btn-secondary mt-3 top-1 right-1 w-10 h-10 ">U</button>
             </TextInput>
         </form>
     );

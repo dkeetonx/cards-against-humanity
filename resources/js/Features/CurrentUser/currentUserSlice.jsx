@@ -3,7 +3,7 @@ import {
     createAsyncThunk,
 } from '@reduxjs/toolkit';
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
-import getStore from '../../getStore';
+import { setNullGame } from '../Game/gameSlice';
 
 function initializeEcho({ id, oldUserId }, thunkAPI) {
     const { dispatch } = thunkAPI;
@@ -21,6 +21,10 @@ function initializeEcho({ id, oldUserId }, thunkAPI) {
                 console.log("UserUpdated");
                 console.log(user_data);
                 dispatch(setCurrentUser(user_data));
+
+                if (user_data.game_room_id === null) {
+                    dispatch(setNullGame());
+                }
             });
     }
 }
@@ -28,16 +32,24 @@ function initializeEcho({ id, oldUserId }, thunkAPI) {
 export const fetchCurrentUser = createAsyncThunk(
     'currentUser/fetchCurrentUser',
     async (_, thunkAPI) => {
-        const { getState } = thunkAPI;
+        const { getState, dispatch } = thunkAPI;
         const oldUserId = selectCurrentUserId(getState());
 
         const { data: user } = await window.axios.get('/api/user');
+
+        if (!user) {
+            dispatch(setNullGame());
+            return null;
+        }
 
         if (user.id !== oldUserId) {
             initializeEcho({ id: user.id, oldUserId }, thunkAPI);
         }
         delete user.game_room;
 
+        if (user.game_room_id === null) {
+            dispatch(setNullGame());
+        }
         return user;
     }
 );
@@ -63,7 +75,7 @@ export const updateCurrentUser = createAsyncThunk(
                 return rejectWithValue(err.response.data);
             }
             else {
-                throw error;
+                throw err;
             }
         }
     }
@@ -76,7 +88,7 @@ export const joinGame = createAsyncThunk(
         const oldUserId = selectCurrentUserId(getState());
 
         try {
-            const { user } = await window.axios.post('/api/join', join_data);
+            const { data: user } = await window.axios.post('/api/join', join_data);
 
             if (user.id !== oldUserId) {
                 initializeEcho({ id: user.id, oldUserId }, thunkAPI);
@@ -94,20 +106,36 @@ export const joinGame = createAsyncThunk(
     }
 );
 
+const initialState = {
+    storeStatus: 'prestart',
+    fetchStatus: 'idle',
+    errors: {},
+
+    id: null,
+    name: "",
+    game_room_id: null,
+    status: "nothing",
+
+}
 const currentUserSlice = createSlice({
     name: 'currentUser',
-    initialState: {
-        fetchStatus: 'idle',
-        errors: {},
-
-        id: null,
-        name: "",
-        game_room_id: null,
-        status: "nothing",
-    },
+    initialState,
     reducers: {
         setCurrentUser(state, action) {
-            return { ...state, fetchStatus: 'initialized', ...action.payload };
+            return {
+                ...state,
+                ...action.payload,
+                storeStatus: 'initialized',
+                fetchStatus: 'idle',
+            };
+        },
+        setNullCurrentUser(state, action) {
+            return {
+                ...initialState,
+                storeStatus: 'initialized',
+                fetchStatus: state.fetchStatus,
+                errors: state.errors,
+            }
         }
     },
     extraReducers(builder) {
@@ -159,4 +187,5 @@ export const selectCurrentUserId = (state) => state.currentUser.id;
 export const selectCurrentUserName = (state) => state.currentUser.name;
 export const selectCurrentUserGameId = (state) => state.currentUser.game_room_id;
 export const selectCurrentUserStatus = (state) => state.currentUser.status;
+export const selectPlayingStatus = (state) => state.currentUser.playing_status;
 

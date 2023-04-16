@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class UserUpdated implements ShouldBroadcast
+class UserLeftGame implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -33,17 +33,7 @@ class UserUpdated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        $userChannel = new PrivateChannel('App.Models.User.'.$this->user->id);
-        if ($this->user->game_room_id)
-        {
-            return [
-                $userChannel,
-                new PrivateChannel('App.Models.GameRoom.'.$this->user->game_room_id),
-            ];
-        }
-        else {
-            return $userChannel;
-        }
+        return new PrivateChannel('App.Models.GameRoom.'.$this->user->game_room_id);
     }
 
     public function broadcastWith() : array

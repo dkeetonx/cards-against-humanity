@@ -5,21 +5,13 @@ import TextInput from '../../Components/TextInput'
 import Range from '../../Components/Range'
 import Toggle from '../../Components/Toggle'
 import { selectGameId, selectGameCode, createGame } from './gameSlice'
-import { setShowRejoin } from '../Overlays/overlaysSlice';
 import { selectCurrentUserName } from '../CurrentUser/currentUserSlice'
 
 export default function Create(props) {
     const gameId = useSelector(selectGameId);
-    const gameCode = useSelector(selectGameCode);
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if (gameId) {
-            dispatch(setShowRejoin(true));
-        }
-    }, [gameId, dispatch]);
 
     const userName = useSelector(selectCurrentUserName);
 

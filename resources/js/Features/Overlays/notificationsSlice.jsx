@@ -4,10 +4,9 @@ import {
     createAsyncThunk,
     createEntityAdapter,
 } from '@reduxjs/toolkit';
-import getStore from '../../getStore';
 
 const notificationsAdapter = createEntityAdapter({
-    sortComparer: (a, b) => b.id > a.id,
+    sortComparer: (a, b) => a.severity - b.severity,
 });
 
 const initialState = notificationsAdapter.getInitialState();
@@ -21,11 +20,6 @@ const notificationsSlice = createSlice({
         addNotification: {
             reducer(state, action) {
                 notificationsAdapter.upsertOne(state, action.payload)
-                setTimeout(() => {
-                    const store = getStore();
-                    store.dispatch(dismissNotification(action.payload.id));
-                },
-                    action.payload.duration * 1000)
             },
             prepare({ id, priority, extraClasses, duration, component }) {
                 componentProxy[id] = component;
@@ -44,7 +38,19 @@ const notificationsSlice = createSlice({
         }
     }
 })
-export const { addNotification, dismissNotification } = notificationsSlice.actions;
+
+export const addNotification = (notification) => {
+    return function (dispatch) { //redux-toolkit provides thunk middleware
+        console.log("addNotification");
+        dispatch(_addNotification(notification));
+        setTimeout(() => {
+            dispatch(dismissNotification(notification.id));
+        }, notification.duration * 1000)
+    }
+}
+const { addNotification: _addNotification } = notificationsSlice.actions;
+
+export const { dismissNotification } = notificationsSlice.actions;
 
 export default notificationsSlice.reducer;
 
@@ -60,14 +66,14 @@ export const { selectAll: selectAllNotifications } =
         };
     });
 
-export function notifyOfErrors({ errors }) {
+export function notifyOfErrors({ errors }, { dispatch }) {
     Object.values(errors).forEach(message => {
-        getStore().dispatch(addNotification({
+        dispatch(addNotification({
             id: nanoid(),
             priority: 5,
             duration: 5,
             extraClasses: "alert-warning",
-            component: () => <p className="text-sm">{message}</p>,
+            component: () => <p className="">{message}</p>,
         }));
     });
 }

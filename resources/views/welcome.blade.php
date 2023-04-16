@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Laravel</title>
+        <title>Cards Against Humanity</title>
 
         <style>
             body {
@@ -12,7 +12,7 @@
             }
         </style>
     </head>
-    <body class="antialiased">
+    <body class="">
         <div id="app" class="min-h-screen max-h-screen flex flex-col"></div>
         @viteReactRefresh
         @vite('resources/js/app.jsx')

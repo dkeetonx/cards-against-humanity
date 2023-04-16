@@ -7,6 +7,7 @@ import {
     Outlet,
     createBrowserRouter,
     RouterProvider,
+    useParams,
 } from "react-router-dom";
 import store from './store';
 
@@ -16,10 +17,16 @@ import {
     selectCurrentUserCanFetch,
     selectCurrentUserGameId,
 } from './Features/CurrentUser/currentUserSlice';
-import { fetchGame, selectGameId } from './Features/Game/gameSlice';
+import {
+    fetchGame,
+    selectGameId,
+    selectGameCode
+} from './Features/Game/gameSlice';
+import { fetchUsers } from './Features/Users/usersSlice';
 
 import { Provider, useSelector, useDispatch } from 'react-redux'
 
+import Home from './Home';
 import JoinDialog from './Features/CurrentUser/JoinDialog';
 import Game from './Features/Game/Game';
 import Create from './Features/Game/Create';
@@ -29,33 +36,40 @@ import Footer from './Footer';
 import LeaveModal from './Features/Game/LeaveModal';
 import Snackbar from './Features/Overlays/Snackbar';
 
-
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Home />,
+        element: <Layout />,
         errorElement: <ErrorPage />,
         children: [
             {
-                path: "/play/:roomCode",
+                path: "/",
+                element: <Home />,
+                loader: () => document.title = "Home - Cards Against Humanity Online",
+            },
+            {
+                path: "/play/:playCode",
                 element: <Game />,
+                loader: () => document.title = "Game - Cards Against Humanity Online",
             },
             {
                 path: "/join/:urlRoomCode?",
                 element: <JoinDialog />,
+                loader: () => document.title = "Join - Cards Against Humanity Online",
             },
             {
                 path: "/create",
                 element: <Create />,
+                loader: () => document.title = "Create - Cards Against Humanity Online",
             }
         ],
     },
 ]);
 
-function Home(props) {
+function Layout(props) {
     const userGameId = useSelector(selectCurrentUserGameId);
     const currentUserCanFetch = useSelector(selectCurrentUserCanFetch)
-
+    const gameId = useSelector(selectGameId);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -71,7 +85,11 @@ function Home(props) {
         }
     }, [userGameId, dispatch]);
 
-    console.log("home");
+    useEffect(() => {
+        if (gameId) {
+            dispatch(fetchUsers(gameId)).unwrap();
+        }
+    }, [gameId, dispatch]);
 
     return (
         <>
@@ -88,11 +106,11 @@ function Home(props) {
 
 function start() {
     return (
-            <Provider store={store}>
-        <React.StrictMode>
+        <Provider store={store}>
+            <React.StrictMode>
                 <RouterProvider router={router} />
-                </React.StrictMode>
-            </Provider>
+            </React.StrictMode>
+        </Provider>
     );
 }
 

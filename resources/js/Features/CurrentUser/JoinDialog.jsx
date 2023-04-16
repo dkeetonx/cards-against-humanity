@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import TextInput from '../../Components/TextInput';
 
@@ -13,23 +13,25 @@ import {
 import {
     selectGameId,
     selectGameFetchStatus,
+    selectGameCode,
     canUpdate,
 } from '../Game/gameSlice';
-
-import { setShowRejoin } from '../Overlays/overlaysSlice';
 
 export default function JoinDialog(props) {
 
     const userName = useSelector(selectCurrentUserName);
     const gameId = useSelector(selectGameId);
+    const gameCode = useSelector(selectGameCode);
     const gameFetchStatus = useSelector(selectGameFetchStatus);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const [codeError, setCodeError] = useState(null);
     const [nameError, setNameError] = useState(null);
 
     const { urlRoomCode } = useParams();
     const [codeBox, setCodeBox] = useState(urlRoomCode);
+    const [shouldRedirect, setShouldRedirect] = useState(false);
 
     const [nameBox, setNameBox] = useState(userName);
     const [processing, setProcessing] = useState(false);
@@ -40,8 +42,9 @@ export default function JoinDialog(props) {
     }, [userName]);
 
     useEffect(() => {
-        if (gameId) {
-            dispatch(setShowRejoin(true));
+        if (shouldRedirect) {
+            setShouldRedirect(false);
+            navigate(`/play/${gameCode}`);
         }
     }, [gameId, dispatch]);
 
@@ -52,10 +55,11 @@ export default function JoinDialog(props) {
         if (canUpdate(gameFetchStatus)) {
             setProcessing(true);
             try {
-                await dispatch(joinGame({
+                const response = await dispatch(joinGame({
                     room_code: codeBox, 
                     name: nameBox,
                 })).unwrap();
+                setShouldRedirect(true);
 
             } catch (error) {
                 if (error.errors) {

@@ -68,35 +68,33 @@ class GameController extends Controller
         $gr = GameRoom::where('room_code', $request->room_code)->first();
         $user->name = $request->get('name');
 
-        if (!$user->game_room_id || $user->game_room_id != $gr->id)
-        {
-            $user->game_room_id = $gr->id;
-            $user->game_room_status = "nothing";
-            $user->save();
-        }
+        $user->game_room_id = $gr->id;
 
-        if ($user->game_room_status == "nothing")
+        if ($user->playing_status == "nothing")
         {
             if  ($gr->has_waiting_room)
             {
-                $user->game_room_status = "waiting";
+                $user->playing_status = "waiting";
             }
             else
             {
-                $user->game_room_status = "watching";
+                $user->playing_status = "spectating";
             }
         }
 
         $user->save();
+
+
+        $user->save();
         Auth::login($user, true);
 
-        return ['user' => $user, 'game_room' => $gr ];
+        return $user;
     }
 
     public function leave(Request $request)
     {
         $user = Auth::user();
-        $user->leaveGameRoom();
+        $user->leaveGameRoom(true);
         return $user;
     }
 
@@ -140,8 +138,65 @@ class GameController extends Controller
         $gameRoom->save();
 
         $user->game_room_id = $gameRoom->id;
+        $user->playing_status = "playing";
         $user->save();
 
         return $gameRoom;
+    }
+
+    public function users(Request $request)
+    {
+        $user = Auth::user();
+        if ($user && $user->gameRoom)
+        {
+            $users = User::where('game_room_id', '=', $user->game_room_id)->get();
+            return $users;
+        }
+        else {
+            return [];
+        }
+    }
+
+    public function admit(Request $request)
+    {
+        $request->validate([
+            'id' => 'bail|required|exists:users,id',
+        ]);
+
+        $user = Auth::user();
+        $targetUser = User::find($request->id);
+
+        if ($targetUser->game_room_id === $user->game_room_id
+            &&
+            $targetUser->playing_status == "waiting")
+        {
+            if ($targetUser->gameRoom->progress == "pregame")
+            {
+                $targetUser->playing_status = "playing";
+            }
+            else {
+                $targetUser->playing_status = "spectating";
+            }
+            $targetUser->save();
+        }
+        return [];
+    }
+
+    public function deny(Request $request)
+    {
+        $request->validate([
+            'id' => 'bail|required|exists:users,id',
+        ]);
+
+        $user = Auth::user();
+        $targetUser = User::find($request->id);
+
+        if ($targetUser->game_room_id === $user->game_room_id
+            &&
+            $targetUser->playing_status == "waiting")
+        {
+            $targetUser->leaveGameRoom(true);
+        }
+        return [];
     }
 }

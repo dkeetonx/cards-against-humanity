@@ -34,4 +34,14 @@ class GameRoom extends Model
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
+
+    public function questioner() : BelongsTo
+    {
+        return $this->belongsTo(User::class, 'current_questioner');
+    }
+
+    public function winner() : BelongsTo
+    {
+        return $this->belongsTo(User::class, 'winner_id');
+    }
 }

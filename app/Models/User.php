@@ -22,6 +22,13 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'game_room_id',
+        'status',
+        'turn_index',
+        'connected',
+        'has_free_redraw',
+        'points',
+        'playing_status',
     ];
 
     /**
@@ -54,9 +61,16 @@ class User extends Authenticatable
 
     public function leaveGameroom($save = false)
     {
+        event(new \App\Events\UserLeftGame($this));
         $this->game_room_id = null;
+        $this->turn_index = -1;
+        $this->has_free_redraw = false;
+        $this->points = 0;
+        $this->playing_status = "waiting";
         if ($save)
+        {
             $this->save();
+        }
         return true;
     }
 }

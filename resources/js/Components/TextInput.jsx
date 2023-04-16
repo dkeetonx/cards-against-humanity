@@ -10,8 +10,10 @@ export default props => (
             </label>
             <input type="text" id={props.id} name={props.name} value={props.value ?? ""}
                 placeholder={props.placeholder} maxLength={props.maxLength}
+                ref={props.inputRef}
                 onChange={props.onChange}
-                className={`mt-3 grow input input-bordered ${props.inputExtraClasses}`} />
+                className={`mt-3 input input-bordered ${props.inputExtraClasses}`}
+            />
             {props.children}
         </div>
     </div>

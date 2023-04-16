@@ -22,6 +22,9 @@ Route::group(['prefix' => '/api/'], function () {
     Route::post('join', [ GameController::class, 'join' ]);
     Route::post('leave', [ GameController::class, 'leave' ]);
     Route::post('create', [ GameController::class, 'create' ]);
+
+    Route::post('admit', [ GameController::class, 'admit' ])->middleware('owner');
+    Route::post('deny', [ GameController::class, 'deny' ])->middleware('owner');
     
     Route::get('game', [ GameController::class, 'data']);
     Route::get('users', [ GameController::class, 'users']);

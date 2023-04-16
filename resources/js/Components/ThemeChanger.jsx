@@ -6,11 +6,10 @@ export default function ThemeChanger(props) {
 
     useEffect(() => {
         themeChange(!(document.readyState == "complete"));
-        return () => "";
-    });
+    }, []);
 
     return (
-        <div title="Change Theme" className="dropdown dropdown-start">
+        <div title="Change Theme" className={`dropdown ${props.className}`}>
             <div tabIndex={1} className="btn gap-1 normal-case btn-ghost">
                 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     className="inline-block h-5 w-5 stroke-current md:h-6 md:w-6">
