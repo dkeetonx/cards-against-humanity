@@ -61,7 +61,7 @@ export const updateCurrentUser = createAsyncThunk(
         const oldUserId = selectCurrentUserId(getState());
 
         try {
-            const { data: user } = await window.axios.post('/api/name', user_update);
+            const { data: user } = await window.axios.post('/api/user', user_update);
             delete user.game_room;
 
             if (user.id !== oldUserId) {
@@ -80,6 +80,7 @@ export const updateCurrentUser = createAsyncThunk(
         }
     }
 );
+
 
 export const joinGame = createAsyncThunk(
     'currentUser/joinGame',

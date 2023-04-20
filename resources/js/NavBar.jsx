@@ -1,18 +1,16 @@
 import React from 'react'
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import ThemeChanger from './Components/ThemeChanger'
+import ThemeChanger from './Components/ThemeChanger';
+import Avatar from './Components/Avatar';
 import UsernameEditor from './Features/CurrentUser/UsernameEditor';
-import { selectCurrentUserName } from './Features/CurrentUser/currentUserSlice';
+import { selectCurrentUser } from './Features/CurrentUser/currentUserSlice';
 
 import { setShowLeaveModal } from './Features/Overlays/overlaysSlice';
 
 export default function NavBar(props) {
 
-    const userName = useSelector(selectCurrentUserName);
-    const names = userName.split(' ');
-    const abbreviation = names.map(name => name.charAt(0)).join("");
-
+    const user = useSelector(selectCurrentUser);
     const dispatch = useDispatch();
 
     return (
@@ -30,11 +28,7 @@ export default function NavBar(props) {
             <div className="flex-shrink pr-2">
                 <div className="dropdown dropdown-end">
                     <label tabIndex={0} className="flex flex-row items-center justify-end">
-                        <div className="avatar placeholder">
-                            <div className="btn bg-green-600 text-white rounded-full w-12">
-                                <span className="">{abbreviation}</span>
-                            </div>
-                        </div>
+                        <Avatar user={user} className="w-12"/>
                         <svg className="h-8 w-8 fill-current hidden sm:block" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
                     </label>
 

@@ -93,7 +93,7 @@ export default function Create(props) {
     }
 
     return (
-        <div className="flex flex-grow flex-col items-center">
+        <div className="flex flex-grow flex-col items-center h-full overflow-auto">
             <form onSubmit={handleSubmit}
                 className="flex grow flex-col items-start space-y-6 w-64">
                 <h2 className="text-3xl font-bold">Create a Game</h2>
@@ -171,7 +171,7 @@ export default function Create(props) {
                 </div>
 
             </form>
-            <div className="w-32 h-32 shrink-0 content-end"></div>
+            <div className="w-full h-44 shrink-0 self-end"></div>
         </div>
     );
 }

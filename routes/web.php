@@ -18,7 +18,7 @@ Route::get('/{anypath?}', [ GameController::class, 'home' ])->where('anypath', '
 
 Route::group(['prefix' => '/api/'], function () {
     Route::get('user', [ GameController::class, 'user' ]);
-    Route::post('name', [ GameController::class, 'name' ]);
+    Route::post('user', [ GameController::class, 'updateUser' ]);
     Route::post('join', [ GameController::class, 'join' ]);
     Route::post('leave', [ GameController::class, 'leave' ]);
     Route::post('create', [ GameController::class, 'create' ]);

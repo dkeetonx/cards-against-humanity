@@ -94,7 +94,7 @@ function Layout(props) {
     return (
         <>
             <NavBar />
-            <div className="container mx-auto flex flex-grow overflow-auto">
+            <div className="relative bg-base-100 container mx-auto flex-grow">
                 <Outlet />
             </div>
             <Snackbar />

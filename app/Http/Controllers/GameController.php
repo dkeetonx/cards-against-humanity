@@ -26,20 +26,27 @@ class GameController extends Controller
         return view('welcome');
     }
 
-    public function name(Request $request)
+    public function updateUser(Request $request)
     {
-        $request->validate([
-            'name' => 'required|min:2|max:32'
-        ]);
-
         $user = Auth::user();
+
+        if ($user)
+        {
+            $request->validate([
+                'name' => 'min:2|max:32'
+            ]);
+        }
+        else {
+            $request->validate([
+                'name' => 'required|min:2|max:32'
+            ]);
+        }
 
         if(!$user)
         {
             $user = new User;
         }
-
-        $user->name = $request->get('name');
+        $user->fill($request->all());
         $user->save();
 
         Auth::login($user, true);
