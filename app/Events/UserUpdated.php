@@ -48,6 +48,6 @@ class UserUpdated implements ShouldBroadcast
 
     public function broadcastWith() : array
     {
-        return $this->user->attributesToArray();
+        return $this->user->toArray();
     }
 }

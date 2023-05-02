@@ -1,22 +1,21 @@
 import React from 'react'
 
 export default props => (
-    <div className={`{props.className}`}>
+    <div className={`${props.className}`}>
         <div className={`tooltip ${props.tooltipExtraClasses ?? ""} flex flex-row`}
             data-tip={props.tooltipText}>
             <div className="form-control">
-                <label className="label cursor-pointer">
-                    <span
-                        className="label-text badge text-primary-content bg-primary">
+                <label className="label cursor-pointer flex flex-col items-start">
+                    <p className="label-text ">
                         {props.label}
-                    </span>
+                    </p>
                     <input
                         type="checkbox"
                         name={props.name}
                         min={props.min}
                         max={props.max}
                         value={props.value}
-                        className={`toggle ${props.inputExtraClasses}`}
+                        className={`toggle toggle-primary ${props.inputExtraClasses}`}
                         onChange={props.onChange}
                         checked={props.checked}
                     />

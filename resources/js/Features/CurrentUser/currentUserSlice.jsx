@@ -189,4 +189,5 @@ export const selectCurrentUserName = (state) => state.currentUser.name;
 export const selectCurrentUserGameId = (state) => state.currentUser.game_room_id;
 export const selectCurrentUserStatus = (state) => state.currentUser.status;
 export const selectPlayingStatus = (state) => state.currentUser.playing_status;
-
+export const selectCurrentUserReady = (state) => state.currentUser.ready;
+export const selectCurrentUserVoted = (state) => state.currentUser.voted;

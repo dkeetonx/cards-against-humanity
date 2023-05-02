@@ -2,23 +2,33 @@ import {
     createSlice,
     createAsyncThunk,
     createEntityAdapter,
+    createSelector,
 } from '@reduxjs/toolkit';
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
 import { selectCurrentUser } from '../CurrentUser/currentUserSlice';
+import { selectAllUsers } from '../Users/usersSlice';
+import { setAnswerCard } from '../Cards/cardsSlice';
 
 function initializeEcho(id, thunkAPI) {
-    const { dispatch } = thunkAPI;
+    const { dispatch, getState } = thunkAPI;
     console.log(`initializing echo App.Models.GameRoom.${id}`);
     window.Echo.private(`App.Models.GameRoom.${id}`)
-        .listen('GameUpdate', (game_data) => { 
+        .listen('GameUpdated', (game_data) => {
             console.log("GameUpdated");
             console.log(game_data);
-            const currentUser = dispatch(selectCurrentUser)
-            if (currentUser.game_room_id === game_data.id)
-            {
+            const currentUser = selectCurrentUser(getState());
+            if (currentUser.game_room_id === game_data.id) {
                 dispatch(setGame(game_data));
             }
-        });
+        })
+        .listen('UserAnswerCardChanged', (userAnswerCard) => {
+            console.log("UserAnswerCardChanged");
+            console.log(userAnswerCard);
+            const currentUser = selectCurrentUser(getState());
+            if (currentUser.game_room_id === userAnswerCard.game_room_id) {
+                dispatch(setAnswerCard(userAnswerCard));
+            }
+        })
 }
 
 export const fetchGame = createAsyncThunk(
@@ -39,6 +49,47 @@ export const fetchGame = createAsyncThunk(
         return game;
     }
 );
+
+export const startGame = createAsyncThunk(
+    'game/startGame',
+    async (_, thunkAPI) => {
+        const { data: game } = await window.axios.post('/api/start', {});
+
+        console.log(game);
+
+        return game;
+    }
+);
+
+export const voteSkip = createAsyncThunk(
+    'game/voteSkip',
+    async (_, thunkAPI) => {
+        const { data: game } = await window.axios.post('/api/vote', {});
+
+        return game;
+    }
+)
+
+export const nextRound = createAsyncThunk(
+    'game/nextRound',
+    async (_, thunkAPI) => {
+        const { data: game } = await window.axios.post('/api/next', {});
+
+        return game;
+    }
+)
+
+export const submitWinner = createAsyncThunk(
+    'game/submitWinner',
+    async (winning_group_id, thunkAPI) => {
+        console.log(winning_group_id);
+        const { data: game } = await window.axios.post('/api/winner', {
+            winning_group_id,
+        });
+
+        return game;
+    }
+)
 
 export const createGame = createAsyncThunk(
     'game/createGame',
@@ -75,20 +126,31 @@ const initialState = {
 
     id: null,
     room_code: "",
-    deadline: new Date().getTime(),
+    deadline_at: null,
 };
 
 const gameSlice = createSlice({
     name: 'game',
     initialState,
     reducers: {
-        setGame(state, action) {
-            return {
-                ...state,
-                ...action.payload,
-                storeStatus: 'initialized',
-                fetchStatus: 'idle',
-            };
+        setGame: {
+            reducer(state, action) {
+                return {
+                    ...state,
+                    ...action.payload,
+                    storeStatus: 'initialized',
+                    fetchStatus: 'idle',
+                }
+            },
+            prepare(newGame) {
+                const deadline_in = newGame.deadline_in;
+                return {
+                    payload: {
+                        ...newGame,
+                        deadline_at: Date.now() + deadline_in,
+                    }
+                };
+            }
         },
         setNullGame(state, action) {
             return {
@@ -102,7 +164,7 @@ const gameSlice = createSlice({
     extraReducers(builder) {
         builder
             .addCase(fetchGame.fulfilled, (state, { payload }) => {
-                return gameSlice.reducer(state, { type: 'game/setGame', payload })
+                return gameSlice.reducer(state, setGame(payload));
             })
             .addCase(fetchGame.pending, (state, action) => {
                 state.fetchStatus = 'loading';
@@ -122,6 +184,12 @@ const gameSlice = createSlice({
             })
             .addCase(createGame.fulfilled, (state, { payload }) => {
                 return gameSlice.reducer(state, { type: 'game/setGame', payload })
+            })
+            .addCase(startGame.pending, (state, action) => {
+
+            })
+            .addCase(startGame.fulfilled, (state, action) => {
+
             });
     }
 });
@@ -140,5 +208,21 @@ export const selectGameErrors = (state) => state.game.errors;
 export const selectGame = (state) => state.game;
 export const selectGameId = (state) => state.game.id;
 export const selectGameCode = (state) => state.game.room_code;
-export const selectGameDeadline = (state) => state.game.deadline;
+export const selectGameDeadline = (state) => state.game.deadline_at;
 export const selectGameOwnerId = (state) => state.game.owner_id;
+export const selectGameProgress = (state) => state.game.progress;
+export const selectCurrentQuestionerId = (state) => state.game.current_questioner;
+export const selectAnswerCount = (state) => state.game.answer_count;
+export const selectWinningGroupId = (state) => state.game.winning_group_id;
+
+export const selectOwner = createSelector(
+    [selectAllUsers, selectGameOwnerId],
+    (users, ownerId) => users.reduce((owner, user) => user.id == ownerId ? user : owner, { id: null }),
+);
+
+export const selectCurrentQuestioner = createSelector(
+    [selectAllUsers, selectCurrentQuestionerId],
+    (users, questionerId) => users.reduce((questioner, user) => (
+        user.id == questionerId ? user : questioner
+    ), { id: null, name: "" }),
+)

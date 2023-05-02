@@ -14,7 +14,7 @@ export default function NavBar(props) {
     const dispatch = useDispatch();
 
     return (
-        <div className="navbar bg-neutral text-neutral-content overflow-x-clip p-0">
+        <div className="absolute top-0 left-0 z-40 navbar bg-neutral text-neutral-content overflow-x-clip p-0">
             <div className="flex-1">
                 <Link to="/" className="btn btn-ghost normal-case px-1">
                     <svg className="h-8 w-8 fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"></path></svg>

@@ -4,8 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Models\GameRoom;
+use App\Models\GameDeckPack;
 use App\Models\User;
+use App\Models\Pack;
+use App\Models\UserQuestionCard;
+use App\Models\UserAnswerCard;
+use Log;
 
 class GameController extends Controller
 {
@@ -77,21 +83,20 @@ class GameController extends Controller
 
         $user->game_room_id = $gr->id;
 
-        if ($user->playing_status == "nothing")
+        if  ($gr->has_waiting_room)
         {
-            if  ($gr->has_waiting_room)
+            $user->playing_status = "waiting";
+        }
+        else {
+            if ($gr->progress == "prestart")
             {
-                $user->playing_status = "waiting";
+                $user->playing_status = "playing";
             }
-            else
-            {
+            else {
                 $user->playing_status = "spectating";
             }
         }
-
-        $user->save();
-
-
+        $user->has_free_redraw = true;
         $user->save();
         Auth::login($user, true);
 
@@ -108,21 +113,30 @@ class GameController extends Controller
     public function data(Request $request)
     {
         $user = Auth::user();
-        return $user->gameRoom;
+        $gr = $user->gameRoom;
+        if ($gr->deadline_at)
+        {
+            $gr['deadline_in'] = Carbon::now()->diffInMilliSeconds($gr->deadline_at, false);
+        }
+        else {
+            $gr['deadline_in'] = 0;
+        }
+        return $gr;
     }
 
     public function create(Request $request)
     {
-        $this->name($request);
+        $this->updateUser($request);
         $request->validate([
             "max_player_count" => 'integer|between:2,32',
             "has_waiting_room" => 'boolean',
             "two_question_cards" => 'boolean',
             "allow_hand_redraw" => 'boolean',
-            "question_card_timer" => 'integer|between:2,32',
-            "answer_card_timer" => 'integer|between:2,32',
+            "question_card_timer" => 'integer|between:1,32',
+            "answer_card_timer" => 'integer|between:1,32',
             "winning_score" => 'integer',
         ]);
+        // Do some $request->packs validation here. like minimum card counts
 
         $user = Auth::user();
         $user->leaveGameRoom();
@@ -138,11 +152,20 @@ class GameController extends Controller
             }
         } while (GameRoom::where('room_code', $code)->count() > 0 && $retries++ < 10);
 
+        $request->merge([
+            'room_code' => $code,
+            'owner_id' => $user->id,
+            'progress' => 'prestart',
+        ]);
         $gameRoom = GameRoom::create($request->all());
-        $gameRoom->room_code = $code;
-        $gameRoom->owner_id = $user->id;
-        $gameRoom->progress = "pregame";
-        $gameRoom->save();
+
+        foreach ($request->packs as $pack)
+        {
+            $gdp = new GameDeckPack;
+            $gdp->pack_id = $pack['id'];
+            $gdp->game_room_id = $gameRoom->id;
+            $gdp->save();
+        }
 
         $user->game_room_id = $gameRoom->id;
         $user->playing_status = "playing";
@@ -177,13 +200,14 @@ class GameController extends Controller
             &&
             $targetUser->playing_status == "waiting")
         {
-            if ($targetUser->gameRoom->progress == "pregame")
+            if ($targetUser->gameRoom->progress == "prestart")
             {
                 $targetUser->playing_status = "playing";
             }
             else {
                 $targetUser->playing_status = "spectating";
             }
+            Log::debug($targetUser->toArray());
             $targetUser->save();
         }
         return [];
@@ -205,5 +229,250 @@ class GameController extends Controller
             $targetUser->leaveGameRoom(true);
         }
         return [];
+    }
+
+    public function start(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        $user->gameRoom->progressGame();
+        $user->gameRoom->save();
+        return [];
+    }
+
+    public function vote(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        if ($user->gameRoom->deadline_at < Carbon::now())
+        {
+            $user->voted = true;
+            $user->save();
+        }
+        else {
+            return ["vote faled" => ""];
+        }
+
+        return [];
+    }
+
+    public function next(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        if ($user->id !== $user->gameRoom->questioner()->id)
+        {
+            return [];
+        }
+
+        $user->gameRoom->progressGame();
+        $user->gameRoom->save();
+
+        return $user->gameRoom->toArray();
+    }
+
+    public function packs(Request $request)
+    {
+        return  Pack::all();
+    }
+
+    public function qcards(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        switch ($user->gameRoom->progress)
+        {
+            case "prestart":
+                return [];
+                break;
+            case "choosing_qcard":
+                if ($user->id === $user->gameRoom->questioner()->id)
+                {
+                    return $user->userQCards()
+                        ->where('status', '=', 'in_hand')
+                        ->with('card')
+                        ->get();
+                }
+                else {
+                    return $user->gameRoom->userQuestionCards()
+                        ->where('status', '=', 'in_hand')
+                        ->with('card')
+                        ->get();
+                }
+                break;
+
+            case "picking_winner":
+            case "answering":
+            case "revealing_winner":
+                    return $user->gameRoom->userQuestionCards()
+                        ->where('status', '=', 'in_play')
+                        ->with('card')
+                        ->get();
+                break;
+        }
+    }
+    public function acards(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        switch ($user->gameRoom->progress)
+        {
+            case "prestart":
+                return [];
+                break;
+            case "choosing_qcard":
+            case "answering":
+                if ($user->id === $user->gameRoom->questioner()->id)
+                {
+                    return [];
+                }
+                else if ($user->playing_status === "spectating")
+                {
+                    return [];
+                }
+                else {
+                    return $user->userACards()
+                        ->where('status', '=', 'in_hand')
+                        ->with('card')
+                        ->get();
+                }
+                break;
+
+            case "picking_winner":
+            case "revealing_winner":
+                    return $user->gameRoom->userAnswerCards()
+                        ->where('status', '=', 'in_play')
+                        ->with('card')
+                        ->get();
+                break;
+        }
+    }
+
+    public function question(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        if ($user->gameRoom->current_questioner !== $user->id)
+        {
+            return [];
+        }
+
+
+        $uqc = UserQuestionCard::find($request->user_question_card_id);
+        $uqc->status = "in_play";
+        $uqc->save();
+
+        foreach ($user->userQCards->where('status', '=', 'in_hand') as $otherUqc)
+        {
+            $otherUqc->status = "in_trash";
+            $otherUqc->save();
+        }
+
+        $user->ready = true;
+        $user->save();
+
+        $user->gameRoom->user_question_card_id = $request->user_question_card_id;
+        $user->gameRoom->answer_count = $uqc->card->pick;
+        $user->gameRoom->progressGame();
+        $user->gameRoom->save();
+
+        return [];
+    }
+
+    public function answer(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+        $uacs = [];
+        foreach ($request->all() as $id => $order)
+        {
+            $uac = UserAnswerCard::find($id);
+            if ($uac->user_id === $user->id)
+            {
+                $uac->order = $order;
+                $uac->status = "in_play";
+                $uac->revealed = false;
+                $uac->save();
+                $uac->card;
+                $uacs[] = $uac;
+            }
+        }
+        $user->ready = true;
+        $user->save();
+
+        $user->gameRoom->countReady();
+        $user->gameRoom->save();
+
+        return $uacs;
+    }
+
+    public function reveal(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+        if ($user->gameRoom->questioner()->id !== $user->id)
+        {
+            return [];
+        }
+
+        $uac = UserAnswerCard::find($request->user_answer_card_id);
+        $uac->revealed = true;
+        $uac->save();
+
+        return [];
+    }
+
+    public function winner(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return [];
+        }
+
+        $user->gameRoom->winning_group_id = $request->winning_group_id;
+        $user->gameRoom->progressGame();
+        $user->gameRoom->save();
+
+        return $user->gameRoom;
     }
 }

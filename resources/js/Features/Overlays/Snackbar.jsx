@@ -49,7 +49,7 @@ export default function Snackbar(props) {
     const users = useSelector(selectAllWaiting);
 
     return (
-        <div className="toast toast-start absolute">
+        <div className="toast toast-start bottom-4">
             {notifications.map(notification => (
                 <div className={`relative group card p-3 ${notification.extraClasses}`} key={notification.id}>
                     <label className="btn btn-sm btn-circle absolute hidden group-hover:flex -right-2 -top-2"

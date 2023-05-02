@@ -10,7 +10,7 @@ export default props => {
                 <div className="form-control">
                     <label className="label">
                         <span
-                            className="label-text badge text-sm text-primary-content bg-primary">
+                            className="label-text ">
                             {props.label}
                         </span>
                     </label>
@@ -25,7 +25,7 @@ export default props => {
                             min={props.min}
                             max={props.max}
                             value={props.value}
-                            className={`range range-md ${props.inputExtraClasses}`}
+                            className={`range range-md range-primary ${props.inputExtraClasses}`}
                             onChange={props.onChange}
                         />
                     </label>

@@ -12,8 +12,8 @@
             }
         </style>
     </head>
-    <body class="h-screen min-h-screen max-h-screen">
-        <div id="app" class="h-screen min-h-screen max-h-screen flex flex-col bg-base-300"></div>
+    <body class="h-screen flex flex-col overflow-clip">
+        <div id="app" class="grow-0 flex flex-col bg-base-300 h-full"></div>
         @viteReactRefresh
         @vite('resources/js/app.jsx')
     </body>

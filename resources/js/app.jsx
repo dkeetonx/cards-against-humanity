@@ -25,6 +25,7 @@ import {
 import { fetchUsers } from './Features/Users/usersSlice';
 
 import { Provider, useSelector, useDispatch } from 'react-redux'
+import { fetchPacks } from './Features/Cards/packsSlice';
 
 import Home from './Home';
 import JoinDialog from './Features/CurrentUser/JoinDialog';
@@ -35,6 +36,7 @@ import NavBar from './NavBar';
 import Footer from './Footer';
 import LeaveModal from './Features/Game/LeaveModal';
 import Snackbar from './Features/Overlays/Snackbar';
+import Spectating from './Features/Overlays/Spectating';
 
 const router = createBrowserRouter([
     {
@@ -76,6 +78,7 @@ function Layout(props) {
         if (currentUserCanFetch) {
             dispatch(fetchCurrentUser()).unwrap();
         }
+        dispatch(fetchPacks()).unwrap();
     }, [dispatch])
 
 
@@ -94,12 +97,13 @@ function Layout(props) {
     return (
         <>
             <NavBar />
-            <div className="relative bg-base-100 container mx-auto flex-grow">
+            <div className="relative container mx-auto pt-16 flex flex-col bg-base-100 h-full overflow-clip">
                 <Outlet />
             </div>
             <Snackbar />
             {/*<Footer />*/}
             <LeaveModal />
+            <Spectating />
         </>
     );
 }

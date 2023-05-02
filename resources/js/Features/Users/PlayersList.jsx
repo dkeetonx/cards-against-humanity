@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-    selectAllUsers,
-    selectAllWaiting,
     selectAllPlaying,
-    selectAllSpectating
 } from './usersSlice';
 import { updateCurrentUser } from '../CurrentUser/currentUserSlice';
 import UserList from './UserList';
@@ -14,7 +11,7 @@ export default function PlayersList() {
     const dispatch = useDispatch();
 
     return (
-        <div className="absolute right-0 top-0 flex flex-col items-start bg-base-300 rounded-btn rounded-r-none shadow">
+        <div className="absolute right-0 top-16 flex flex-col items-start bg-base-300 rounded-btn rounded-r-none shadow z-30">
             <UserList
                 selector={selectAllPlaying}
                 className={display ?
@@ -23,7 +20,7 @@ export default function PlayersList() {
                     "relative"
                 }
                 columns={display ?
-                    { round_status: "", points: "P", name: "Players" }
+                    { round_status: "", points: "P", name: "Player" }
                     :
                     { round_status: "" }
                 }

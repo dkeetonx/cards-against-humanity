@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-    selectAllUsers,
-    selectAllWaiting,
-    selectAllPlaying,
     selectAllSpectating,
 } from './usersSlice';
 import { updateCurrentUser } from '../CurrentUser/currentUserSlice';
@@ -14,7 +11,7 @@ export default function PlayersList() {
     const dispatch = useDispatch();
 
     return (
-        <div className="absolute left-0 top-0 flex flex-col items-end bg-base-300 rounded-btn rounded-l-none shadow">
+        <div className="absolute left-0 top-16 flex flex-col items-end bg-base-300 rounded-btn rounded-l-none shadow z-20">
             {!display &&
                 <button
                     className="my-3 btn btn-xs btn-secondary pl-0 border-l-0 rounded-l-none"

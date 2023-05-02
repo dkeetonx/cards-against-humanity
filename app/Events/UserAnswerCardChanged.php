@@ -9,22 +9,21 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon;
 
-class GameUpdated implements ShouldBroadcast
+class UserAnswerCardChanged implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private $game;
+    private $userAnswerCard;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($game)
+    public function __construct($userAnswerCard)
     {
         //
-        $this->game = $game;
+        $this->userAnswerCard = $userAnswerCard;
     }
 
     /**
@@ -34,19 +33,15 @@ class GameUpdated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('App.Models.GameRoom.'.$this->game->id);
+        return new PrivateChannel('App.Models.GameRoom.'.$this->userAnswerCard->game_room_id);
     }
 
     public function broadcastWith() : array
     {
-        $gr = $this->game->attributesToArray();
-        if ($gr['deadline_at'])
+        if ($this->userAnswerCard->revealed)
         {
-            $gr['deadline_in'] = Carbon::now()->diffInMilliseconds($this->game->deadline_at, false);
+            $this->userAnswerCard->card;
         }
-        else {
-            $gr['deadline_in'] = 0;
-        }
-        return $gr;
+        return $this->userAnswerCard->toArray();
     }
 }

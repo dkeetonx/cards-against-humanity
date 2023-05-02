@@ -5,7 +5,6 @@ import {
     createSelector,
 } from '@reduxjs/toolkit';
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
-import { selectGameId } from '../Game/gameSlice';
 
 function initializeEcho(id, thunkAPI) {
     const { dispatch, getState } = thunkAPI;
@@ -34,6 +33,22 @@ export const fetchUsers = createAsyncThunk(
         return users;
     }
 );
+export const admitWaitingUser = createAsyncThunk(
+    'users/admitWaitingUser',
+    async ({ id }, thunkAPI) => {
+        window.axios.post(`/api/admit`, {
+            id,
+        });
+    }
+)
+export const denyWaitingUser = createAsyncThunk(
+    'users/denyWaitingUser',
+    async ({ id }, thunkAPI) => {
+        window.axios.post(`/api/deny`, {
+            id,
+        });
+    }
+);
 
 const usersAdapter = createEntityAdapter({
     sortComparer: (a, b) => a.points - b.points,
@@ -51,16 +66,6 @@ const usersSlice = createSlice({
         updateUser(state, action) {
             usersAdapter.upsertOne(state, action.payload);
         },
-        admitWaitingUser(state, { payload }) {
-            window.axios.post(`/api/admit`, {
-                id: payload.id,
-            });
-        },
-        denyWaitingUser(state, { payload }) {
-            window.axios.post(`/api/deny`, {
-                id: payload.id,
-            });
-        }
     },
     extraReducers(builder) {
         builder
@@ -68,10 +73,22 @@ const usersSlice = createSlice({
 
             })
             .addCase(fetchUsers.fulfilled, (state, action) => {
-                usersAdapter.upsertMany(state, action.payload);
+                usersAdapter.setAll(state, action.payload);
             })
             .addCase(fetchUsers.rejected, (state, action) => {
                 console.log(`fetchUsers.rejected: ${action}`);
+            })
+            .addCase(admitWaitingUser.pending, (state, action) => {
+
+            })
+            .addCase(admitWaitingUser.fulfilled, (state, action) => {
+                
+            })
+            .addCase(denyWaitingUser.pending, (state, action) => {
+
+            })
+            .addCase(denyWaitingUser.fulfilled, (state, action) => {
+                
             })
     }
 });
@@ -80,8 +97,6 @@ export default usersSlice.reducer;
 export const {
     removeUser,
     updateUser,
-    admitWaitingUser,
-    denyWaitingUser,
 } = usersSlice.actions;
 
 export const {

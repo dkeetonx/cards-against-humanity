@@ -6,7 +6,6 @@ import TextInput from '../../Components/TextInput';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     selectCurrentUserName,
-    selectCurrentUserId,
     joinGame,
 } from './currentUserSlice';
 
@@ -81,7 +80,7 @@ export default function JoinDialog(props) {
     }
 
     return (
-        <div className="flex grow flex-col items-center justify-around">
+        <div className="grow flex flex-col items-center justify-around">
             <div className="card bg-base-300 text-base-content shadow">
                 <div className="card-body">
                     <h2 className="card-title">Join a Game</h2>
