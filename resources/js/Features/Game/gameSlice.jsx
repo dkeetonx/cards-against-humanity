@@ -119,6 +119,7 @@ export const leaveGame = createAsyncThunk('game/leaveGame', async () => {
     return data;
 });
 
+
 const initialState = {
     storeStatus: 'prestart',
     fetchStatus: 'idle',
@@ -190,7 +191,7 @@ const gameSlice = createSlice({
             })
             .addCase(startGame.fulfilled, (state, action) => {
 
-            });
+            })
     }
 });
 

@@ -1,19 +1,21 @@
-export default function AnswerCard({ onClick, text, selected = false, pick, of}) {
+export default function AnswerCard({ onClick, text, selectable = true, selected = false, pick, of}) {
     return (
+        <div className="relative">
         <label
             className={selected ?
-                "relative card shadow border border-black bg-white outline outline-accent outline-4 text-black text-sm shrink-0 w-36 h-52 p-2 m-1"
+                `card shadow border border-black bg-white outline outline-accent outline-4 select-none text-black text-sm shrink-0 w-36 h-52 p-2 m-1 overflow-y-auto ${selectable?"cursor-pointer":""}`
                 :
-                "relative card shadow border border-black bg-white text-black text-sm shrink-0 w-36 h-52 p-2 m-1"
+                `card shadow border border-black bg-white text-black select-none text-sm shrink-0 w-36 h-52 p-2 m-1 overflow-y-auto ${selectable?"cursor-pointer":""}`
             }
             onClick={() => onClick && onClick()}
         >
             <p>{text}</p>
-            {pick ?
-                <p className="absolute font-bold text-xl bottom-1 right-3">{pick}/{of}</p>
+        </label>
+        {pick ?
+                <p className="absolute text-black font-bold text-xl bottom-1 right-3">{pick}/{of}</p>
                 :
                 ""
             }
-        </label>
+        </div>
     );
 }

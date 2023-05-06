@@ -33,6 +33,7 @@ Route::group(['prefix' => '/api/'], function () {
     Route::post('winner', [ GameController::class, 'winner' ]);
     Route::post('reveal', [ GameController::class, 'reveal' ]);
     Route::post('next', [ GameController::class, 'next' ]);
+    Route::post('redraw', [ GameController::class, 'redraw' ]);
 
     Route::get('game', [ GameController::class, 'data']);
     Route::get('users', [ GameController::class, 'users']);

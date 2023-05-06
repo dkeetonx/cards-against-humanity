@@ -1,48 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     selectAllSpectating,
 } from './usersSlice';
-import { updateCurrentUser } from '../CurrentUser/currentUserSlice';
+import {
+    updateCurrentUser,
+    selectPlayingStatus,
+} from '../CurrentUser/currentUserSlice';
 import UserList from './UserList';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+    faGamepad,
+    faGlasses,
+    faCheck,
+} from '@fortawesome/free-solid-svg-icons';
 
 export default function PlayersList() {
-    const [display, setDisplay] = useState(false);
     const dispatch = useDispatch();
+    const playingStatus = useSelector(selectPlayingStatus);
 
     return (
-        <div className="absolute left-0 top-16 flex flex-col items-end bg-base-300 rounded-btn rounded-l-none shadow z-20">
-            {!display &&
-                <button
-                    className="my-3 btn btn-xs btn-secondary pl-0 border-l-0 rounded-l-none"
-                    onClick={() => setDisplay(!display)}
-                >
-                    <span className="font-mono">&nbsp;</span>
-                </button>
-            }
-            {display && <>
+        <div className="dropdown dropdown-start">
+            <label tabIndex={0} className="btn btn-sm btn-outline p-1 px-3 rounded-l-none">
+                <FontAwesomeIcon icon={faGlasses} />
+            </label>
+            <div className="dropdown-content menu shadow -right-24 w-64 rounded-b-box bg-base-300">
                 <UserList
                     selector={selectAllSpectating}
                     initialDisplay="none"
                     columns={{ name: "Spectators" }}
-                    className="relative flex flex-col w-64 overflow-auto"
-                >
+                    className="w-full overflow-auto"
+                />
+                <div className="flex flex-row w-full justify-end bg-base-200 rounded-b-box p-2">
                     <button
-                        className="absolute my-3 mx-2 btn btn-xs btn-secondary top-0 right-0 z-20"
-                        onClick={() => setDisplay(!display)}
-                    >
-                        <span className="">{"<"}</span>
-                    </button>
-                </UserList>
-                <div className="flex flex-row w-full justify-end bg-base-200 rounded-br-box p-2">
-                    <button
-                        className="btn btn-primary"
+                        className={`btn btn-sm btn-primary ${playingStatus === "spectating" ? "btn-disabled":""}`}
                         onClick={() => dispatch(updateCurrentUser({ playing_status: "spectating" }))}
                     >
                         Spectate
                     </button>
                 </div>
-            </>}
+            </div>
         </div>
     );
 }

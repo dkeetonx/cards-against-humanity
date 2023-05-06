@@ -3,6 +3,7 @@ import {
     createAsyncThunk,
     createEntityAdapter,
 } from '@reduxjs/toolkit';
+import { notifyOfErrors } from '../Overlays/notificationsSlice';
 
 export const fetchQuestionCards = createAsyncThunk(
     'cards/fetchQuestionCards',
@@ -56,6 +57,24 @@ export const revealAnswerCard = createAsyncThunk(
 
         console.log(card);
         return card;
+    }
+)
+
+export const redrawHand = createAsyncThunk(
+    'cards/redrawHand',
+    async (_, thunkAPI) => {
+
+        try {
+            const { data: cards } = await window.axios.post('/api/redraw', {});
+
+            return cards;
+        }
+        catch (err) {
+            if (err.response) {
+                notifyOfErrors(err.response.data, thunkAPI);
+                return rejectWithValue(err.response.data);
+            }
+        }
     }
 )
 
@@ -115,6 +134,13 @@ const cardsSlice = createSlice({
                 console.log('fetchAnswerCards.fulfilled');
                 cardsSlice.reducer(state, { type: 'cards/setAnswerCards', payload });
             })
+            .addCase(redrawHand.pending, (state, action) => {
+                console.log('redrawHand.pending');
+            })
+            .addCase(redrawHand.fulfilled, (state, { payload }) => {
+                console.log('redrawHand.fulfilled');
+                cardsSlice.reducer(state, { type: 'cards/setAnswerCards', payload });
+            });
     }
 });
 

@@ -5,6 +5,8 @@ import {
     updateCurrentUser,
 } from './currentUserSlice';
 import TextInput from '../../Components/TextInput';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 
 export default function UserNameEditor() {
     const userName = useSelector(selectCurrentUserName);
@@ -14,7 +16,7 @@ export default function UserNameEditor() {
 
     useEffect(() => {
         setNameBox(userName);
-    },[userName]);
+    }, [userName]);
 
     const dispatch = useDispatch();
 
@@ -24,7 +26,7 @@ export default function UserNameEditor() {
 
         try {
             setNameError(null);
-            await dispatch(updateCurrentUser({name: nameBox})).unwrap();
+            await dispatch(updateCurrentUser({ name: nameBox })).unwrap();
         } catch (error) {
             if (error.errors) {
                 console.log(error.errors);
@@ -50,7 +52,9 @@ export default function UserNameEditor() {
                 tooltipExtraClasses="tooltip-warning tooltip-bottom"
                 inputExtraClasses={`w-full pr-14 ${nameError && "input-warning"}`}
                 onChange={(event) => { setNameBox(event.target.value); setNameError(null) }}>
-                <button className="absolute btn btn-xs btn-secondary mt-3 top-1 right-1 w-10 h-10 ">U</button>
+                <button className="absolute btn btn-xs btn-secondary mt-3 top-1 right-1 w-10 h-10 ">
+                    <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                </button>
             </TextInput>
         </form>
     );

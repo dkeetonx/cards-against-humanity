@@ -22,10 +22,10 @@ export default function StatusBoard({ wrap }) {
                         return "";
                     }
                     if (player.ready) {
-                        return <AnswerCard />;
+                        return <AnswerCard key={player.id} />;
                     }
                     else {
-                        return <PlaceholderCard name={player.name} />
+                        return <PlaceholderCard user={player} key={player.id} />
                     }
             })}
             <div className="w-56 h-32 shrink-0 self-end"></div>

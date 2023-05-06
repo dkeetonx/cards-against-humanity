@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
     selectCurrentUserId,
+    selectHasFreeRedraw,
 } from '../CurrentUser/currentUserSlice';
 import {
     selectAnswerCount,
@@ -11,10 +12,13 @@ import {
     pickAnswerCards,
 } from '../Cards/cardsSlice';
 import AnswerCard from '../Cards/AnswerCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStar } from '@fortawesome/free-regular-svg-icons';
+import { setShowRedrawModal } from '../Overlays/overlaysSlice';
 
 export default function PlayerHand({ wrap }) {
     const currentUserId = useSelector(selectCurrentUserId);
-
+    const hasFreeRedraw = useSelector(selectHasFreeRedraw);
     const answerCards = useSelector(selectAllAnswerCards);
     const answerCount = useSelector(selectAnswerCount);
     const dispatch = useDispatch();
@@ -67,14 +71,31 @@ export default function PlayerHand({ wrap }) {
         setProcessing(false);
     }
 
+    function handleRedrawHand(event) {
+        event.preventDefault();
+        console.log("Using Free Redraw");
+
+        dispatch(setShowRedrawModal(true));
+    }
+
     return (
         <>
-            <button
-                className={`w-36 btn btn-secondary btn-sm ml-1 ${picks >= answerCount ? "" : "btn-disabled"} ${processing ? "loading":""}`}
-                onClick={handleAnswersSubmit}
-            >
-                {processing ? "" : "Pick"}
-            </button>
+            <div className="flex flex-row space-x-2">
+                <button
+                    className={`w-36 btn btn-secondary btn-sm ml-1 mb-1 ${picks >= answerCount ? "" : "btn-disabled"} ${processing ? "loading" : ""}`}
+                    onClick={handleAnswersSubmit}
+                >
+                    {processing ? "" : "Pick"}
+                </button>
+                <div className="tooltip" data-tip="Redraw Hand">
+                    <button
+                        className={"btn btn-square btn-sm " + (hasFreeRedraw ? "": "btn-disabled")}
+                        onClick={handleRedrawHand}
+                    >
+                        <FontAwesomeIcon icon={faStar} />
+                    </button>
+                </div>
+            </div>
             <div
                 id="PlayerHand"
                 className={wrap ?
@@ -83,16 +104,17 @@ export default function PlayerHand({ wrap }) {
                     "flex flex-rows w-full overflow-auto justify-start h-54 pb-2"
                 }
             >
-                {answerCards.map(uac => (uac.user_id === currentUserId && (
+                {answerCards.filter(uac => uac.user_id == currentUserId && uac.status == "in_hand").map(uac => (
                     <AnswerCard
                         key={uac.id}
                         text={uac.card && uac.card.text}
+                        selectable={true}
                         selected={uac.id in answers}
                         pick={uac.id in answers && answers[uac.id]}
                         of={answerCount}
                         onClick={() => handleAnswerSelect(uac.id)}
                     />
-                )))}
+                ))}
             </div>
         </>
     )

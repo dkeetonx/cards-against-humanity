@@ -93,7 +93,7 @@ class GameRoom extends Model
 
     public function qCardDrawCount()
     {
-        return $this->two_question_cards ? 8 : 1;
+        return $this->two_question_cards ? 2 : 1;
     }
 
 
@@ -263,7 +263,7 @@ class GameRoom extends Model
         $endGame = false;
         foreach ($this->players as $player)
         {
-            if ($player->points >= $this->winning_score)
+            if ($this->winning_score > 0 && $player->points >= $this->winning_score)
             {
                 Log::debug("winning player found");
                 $endGame = true;
@@ -422,7 +422,7 @@ class GameRoom extends Model
         $this->current_questioner = $questioner->id;
         Log::debug("nextTurnUser() = {$this->current_questioner}");
 
-        $this->trashCardsInPlay();
+        $this->trashCardsInPlay(true);
         $this->setPlayersNotVoted();
         $this->setPlayersDefaultReady();
 
@@ -445,13 +445,20 @@ class GameRoom extends Model
 
         if (!$this->two_question_cards)
         {
-            $this->progress = "answering";
+            Log::debug("two_question_cards was not set, setting qcards to in_play");
             foreach ($questioner->userQCards as $uqc)
             {
-                $uqc->status = "in_play";
-                $uqc->save();
+                if ($uqc->status == "in_hand")
+                {
+                    Log::debug("setting uqc({$uqc->id}) to in_play");
+                    $uqc->status = "in_play";
+                    $uqc->save();
+                    $this->answer_count = $uqc->card->pick;
+                }
             }
-            $this->answering();
+            $this->progressGame();
+            $this->{$this->progress}();
+            return;
         }
         else {
             $this->deadline_at = Carbon::now()->addMinutes($this->question_card_timer);
@@ -462,6 +469,14 @@ class GameRoom extends Model
 
     public function answering()
     {
+        if (!$this->current_questioner)
+        {
+            Log::debug("answering: Skipping to next because current_questioner was not set");
+            $this->progressGame();
+            $this->{$this->progress}();
+            return;
+        }
+
         $this->setPlayersNotVoted();
         $this->setPlayersDefaultReady();
         $this->questioner()->ready = $this->progressQuestionerReadyState();
@@ -474,6 +489,22 @@ class GameRoom extends Model
 
     public function picking_winner()
     {
+        if (!$this->current_questioner)
+        {
+            Log::debug("picking_winner: Skipping to next because current_questioner was not set");
+            $this->progressGame();
+            $this->{$this->progress}();
+            return;
+        }
+
+        if ($this->userAnswerCards->where('status','=','in_play')->count() < 1)
+        {
+            Log::debug("picking_winner: Skipping to next because no cards in_play");
+            $this->progressGame();
+            $this->{$this->progress}();
+            return;
+        }
+
         $this->setPlayersNotVoted();
         $this->setPlayersDefaultReady();
         $this->questioner()->ready = $this->progressQuestionerReadyState();
@@ -486,6 +517,14 @@ class GameRoom extends Model
 
     public function revealing_winner()
     {
+        if (!$this->current_questioner)
+        {
+            Log::debug("revealing_winner: Skipping to next because current_questioner was not set");
+            $this->progressGame();
+            $this->{$this->progress}();
+            return;
+        }
+
         $this->setPlayersNotVoted();
         $this->setPlayersDefaultReady();
         $this->questioner()->ready = $this->progressQuestionerReadyState();
@@ -498,6 +537,7 @@ class GameRoom extends Model
             Log::debug("Skipping to next because winning_group_id was not set");
             $this->progressGame();
             $this->{$this->progress}();
+            return;
         }
         else {
             Log::debug("winning_group_id was not null");

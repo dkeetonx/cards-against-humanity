@@ -26,12 +26,14 @@ import {
     fetchAnswerCards,
     fetchQuestionCards,
     selectAllQuestionCards,
+    selectAllAnswerCards,
     pickQuestionCard,
 } from '../Cards/cardsSlice';
 import QuestionCard from '../Cards/QuestionCard';
 import PlayerHand from './PlayerHand';
 import AnswerBoard from './AnswerBoard';
 import StatusBoard from './StatusBoard';
+import Username from '../../Components/Username';
 
 export default function Game() {
     const [wrap, setWrap] = useState(true);
@@ -45,6 +47,7 @@ export default function Game() {
     const { playCode } = useParams();
     const playingStatus = useSelector(selectPlayingStatus);
     const currentUserReady = useSelector(selectCurrentUserReady);
+    const answerCards = useSelector(selectAllAnswerCards);
     const questionCards = useSelector(selectAllQuestionCards);
     const currentQuestioner = useSelector(selectCurrentQuestioner);
     const owner = useSelector(selectOwner);
@@ -98,13 +101,13 @@ export default function Game() {
         }
     }, [playingStatus, gameProgress, currentQuestionerId])
 
-    const [spectating, setIsSpectator] = useState(false);
+    const [spectating, setIsSpectating] = useState(false);
     useEffect(() => {
         if (playingStatus == "spectating") {
-            setIsSpectator(true);
+            setIsSpectating(true);
         }
         else {
-            setIsSpectator(false);
+            setIsSpectating(false);
         }
     }, [playingStatus])
 
@@ -152,20 +155,24 @@ export default function Game() {
                 <div className="w-full flex flex-row justify-center">
                     <Countdown isQuestioner={isQuestioner} onDeadline={() => ""} />
                 </div>
+                <div className="w-full flex flex-row justify-center">
+                    <PlayersList />
+                    <SpectatorsList />
+                </div>
                 {gameProgress === "prestart" ?
                     <div className="w-full flex flex-col items-center mt-4 space-y-3 ">
                         <p>
                             {isOwner ?
                                 "Press Start when everyone has joined."
                                 :
-                                `Waiting for ${owner.name} to start the game.`
+                                <span>Waiting for <Username user={owner} /> to start the game.</span>
                             }
                         </p>
                         <PrestartUsersList />
                     </div>
                     :
                     <div className="flex flex-col h-full p-2">
-                        <div className="h-54 shrink-0 flex flex-row overflow-x-auto overflow-y-clip pb-4">
+                        <div className="h-54 shrink-0 flex flex-row overflow-x-auto overflow-y-clip pb-0">
 
                             {questionCards.map((uqc) => (
                                 gameProgress === "choosing_qcard" ?
@@ -215,11 +222,11 @@ export default function Game() {
                                         (isQuestioner ?
                                             "Choose a Black Card."
                                             :
-                                            `Waiting on ${currentQuestioner.name}`
+                                            <span>Waiting on <Username user={currentQuestioner} /></span>
                                         )
                                     }
                                     {gameProgress === "answering" &&
-                                        (isQuestioner ?
+                                        (isQuestioner || spectating ?
                                             "The players are choosing a response."
                                             :
                                             "Pick a response."
@@ -227,9 +234,13 @@ export default function Game() {
                                     }
                                     {gameProgress === "picking_winner" &&
                                         (isQuestioner ?
-                                            "Pick the winner!"
+                                            (answerCards.filter(c => !c.revealed).length > 0 ?
+                                                "Click the cards to reveal them."
+                                                :
+                                                "Pick the winner."
+                                            )
                                             :
-                                            `${currentQuestioner.name} is picking`
+                                            <span><Username user={currentQuestioner} /> is reading</span>
                                         )
                                     }
                                     {gameProgress === "revealing_winner" &&
@@ -258,8 +269,6 @@ export default function Game() {
                     </div>
                 }
             </div>
-            <PlayersList />
-            <SpectatorsList />
         </>
     );
 }

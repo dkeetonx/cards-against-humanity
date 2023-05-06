@@ -35,6 +35,7 @@ import ErrorPage from './ErrorPage';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import LeaveModal from './Features/Game/LeaveModal';
+import RedrawModal from './Features/Game/RedrawModal';
 import Snackbar from './Features/Overlays/Snackbar';
 import Spectating from './Features/Overlays/Spectating';
 
@@ -103,6 +104,7 @@ function Layout(props) {
             <Snackbar />
             {/*<Footer />*/}
             <LeaveModal />
+            <RedrawModal />
             <Spectating />
         </>
     );

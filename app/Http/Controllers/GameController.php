@@ -96,7 +96,8 @@ class GameController extends Controller
                 $user->playing_status = "spectating";
             }
         }
-        $user->has_free_redraw = true;
+
+        $user->has_free_redraw = $gr->allow_hand_redraw;
         $user->save();
         Auth::login($user, true);
 
@@ -347,7 +348,7 @@ class GameController extends Controller
                 break;
             case "choosing_qcard":
             case "answering":
-                if ($user->id === $user->gameRoom->questioner()->id)
+                if ($user->gameRoom->questioner() && $user->id === $user->gameRoom->questioner()->id)
                 {
                     return [];
                 }
@@ -474,5 +475,27 @@ class GameController extends Controller
         $user->gameRoom->save();
 
         return $user->gameRoom;
+    }
+
+    public function redraw(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->gameRoom)
+        {
+            return response([ "errors" => ["redraw" => "You must be in a game room."] ], 403);
+        }
+
+        if (!$user->has_free_redraw)
+        {
+            return response([ "errors" => ["redraw" => "You can't redraw your hand."] ], 405);
+        }
+
+        $user->has_free_redraw = false;
+        $user->dealUserOut();
+        $user->dealUserIn();
+        $user->save();
+
+        return $this->acards($request);
     }
 }

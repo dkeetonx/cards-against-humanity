@@ -251,6 +251,12 @@ out:
                 $newGameRoomId = $user->game_room_id;
                 $user->game_room_id = $user->original['game_room_id'];
                 $user->dealUserOut();
+                if ($user->gameRoom->current_questioner == $user->id)
+                {
+                    $user->gameRoom->current_questioner = null;
+                    $user->gameRoom->skipGame();
+                    $user->gameRoom->save();
+                }
                 $user->game_room_id = $newGameRoomId;
                 $user->points = 0;
 
@@ -279,6 +285,14 @@ out:
                         $user->dealUserIn();
                         $user->ready = $user->gameRoom->progressPlayerReadyState();
                     }
+                    else {
+                        if ($user->gameRoom->current_questioner == $user->id)
+                        {
+                            $user->gameRoom->current_questioner = null;
+                            $user->gameRoom->skipGame();
+                            $user->gameRoom->save();
+                        }
+                    }
                 }
                 else 
                 {
@@ -299,7 +313,7 @@ out:
         {
             if ($user->gameRoom && $user->voted && $user->gameRoom !== "prestart")
             {
-                Log::debug("$user->gameRoom->countVotes()");
+                Log::debug("user->gameRoom->countVotes()");
                 $user->gameRoom->countVotes();
                 $user->gameRoom->save();
             }

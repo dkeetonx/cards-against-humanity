@@ -1,53 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     selectAllPlaying,
 } from './usersSlice';
-import { updateCurrentUser } from '../CurrentUser/currentUserSlice';
+import {
+    updateCurrentUser,
+    selectPlayingStatus
+} from '../CurrentUser/currentUserSlice';
 import UserList from './UserList';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClipboard as pointsIcon } from '@fortawesome/free-regular-svg-icons'
+import { faGamepad } from '@fortawesome/free-solid-svg-icons';
 
 export default function PlayersList() {
-    const [display, setDisplay] = useState(false);
     const dispatch = useDispatch();
+    const playingStatus = useSelector(selectPlayingStatus);
 
     return (
-        <div className="absolute right-0 top-16 flex flex-col items-start bg-base-300 rounded-btn rounded-r-none shadow z-30">
-            <UserList
-                selector={selectAllPlaying}
-                className={display ?
-                    "relative w-64 overflow-auto"
-                    :
-                    "relative"
-                }
-                columns={display ?
-                    { round_status: "", points: "P", name: "Player" }
-                    :
-                    { round_status: "" }
-                }
-            >
-                <button
-                    className={display ?
-                        "absolute my-3 mx-2 btn btn-xs btn-secondary top-0 left-0 z-20"
-                        :
-                        "absolute my-3 btn btn-xs btn-secondary border-r-0 rounded-r-none top-0 right-0 z-20"
-                    }
-                    onClick={() => setDisplay(!display)}
-                >
-                    <span className="">{display ? ">" : " "}</span>
-                </button>
-            </UserList>
-
-            {display &&
-                <div className="flex flex-row w-full justify-start bg-base-200 rounded-bl-box p-2">
+        <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn btn-sm btn-outline p-1 px-3 rounded-r-none">
+                <FontAwesomeIcon icon={faGamepad} />
+            </label>
+            <div className="dropdown-content menu shadow -left-24 flex flex-col w-64 rounded-b-box bg-base-300">
+                <UserList
+                    selector={selectAllPlaying}
+                    className="w-full overflow-auto"
+                    columns={{ round_status: "", points: <FontAwesomeIcon icon={pointsIcon} />, name: "Players" }}
+                />
+                <div className="flex flex-row flex-grow justify-start bg-base-200 p-2 rounded-b-box">
                     <button
-                        className="btn btn-primary"
+                        className={`btn btn-sm btn-primary ${playingStatus === "playing" ? "btn-disabled":""}`}
                         onClick={() => dispatch(updateCurrentUser({ playing_status: "playing" }))}
                     >
                         Play
                     </button>
                 </div>
-            }
+            </div>
         </div>
-
     );
 }

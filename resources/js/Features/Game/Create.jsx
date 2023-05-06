@@ -7,6 +7,8 @@ import Toggle from '../../Components/Toggle'
 import { selectGameId, selectGameCode, createGame } from './gameSlice'
 import { selectCurrentUserName } from '../CurrentUser/currentUserSlice'
 import { selectAllPacks } from '../Cards/packsSlice';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faInfinity } from '@fortawesome/free-solid-svg-icons';
 
 export default function Create(props) {
     const gameId = useSelector(selectGameId);
@@ -132,9 +134,10 @@ export default function Create(props) {
                     />
 
                     <Range
-                        min="-1" max="30" value={formData.winning_score}
-                        label="Points" name="winning score"
+                        min="0" max="30" value={formData.winning_score}
+                        label="Points" name="winning_score"
                         valueLabelExtraClasses="w-16"
+                        formatValue={(v) => v > 0 ? v : <FontAwesomeIcon icon={faInfinity} />}
                         tooltipText={formErrors.winning_score}
                         tooltipExtraClasses="tooltip-top tooltip-warning"
                         inputExtraClasses={(formErrors.winning_score && "input-warning border-2")}

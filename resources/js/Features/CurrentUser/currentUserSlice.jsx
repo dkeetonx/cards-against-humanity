@@ -191,3 +191,4 @@ export const selectCurrentUserStatus = (state) => state.currentUser.status;
 export const selectPlayingStatus = (state) => state.currentUser.playing_status;
 export const selectCurrentUserReady = (state) => state.currentUser.ready;
 export const selectCurrentUserVoted = (state) => state.currentUser.voted;
+export const selectHasFreeRedraw = (state) => state.currentUser.has_free_redraw;

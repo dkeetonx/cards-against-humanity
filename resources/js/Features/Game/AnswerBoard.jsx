@@ -71,7 +71,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
         <>
             {isQuestioner &&
                 <button
-                    className={`w-36 btn btn-secondary btn-sm ml-1 ${winnerGroup ? "" : "btn-disabled"} ${processing ? "loading":""}`}
+                    className={`w-36 btn btn-secondary btn-sm ml-1 mb-1 ${winnerGroup ? "" : "btn-disabled"} ${processing ? "loading":""}`}
                     onClick={handleSubmitWinner}
                 >
                     {processing ? "" : "Pick"}
@@ -84,10 +84,11 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
             }>
                 {Object.keys(groups).map(user_id => (
                     <div key={user_id} className={`relative card flex flex-row ${answerCount > 1 ? "mt-1 border-t-4 border-primary" : ""}`}>
-                        {groups[user_id].cards.map(uac => (
+                        {groups[user_id].cards.filter(uac => uac.status == "in_play").map(uac => (
                             uac.revealed ?
                                 <AnswerCard
                                     key={uac.id}
+                                    selectable={true}
                                     selected={winnerGroup == uac.user_id}
                                     text={uac.card && uac.card.text}
                                     pick={uac.order}
@@ -102,7 +103,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                         ))}
                         {reveal &&
                             <div className="absolute flex flex-col justify-between items-center w-full h-full left-0 top-0">
-                                <p className="px-1 bg-accent rounded-btn text-accent-content font-semibold text-xs text-center truncate">
+                                <p className="px-1 bg-accent rounded-btn text-accent-content font-semibold w-28 text-xs text-center truncate">
                                     {groups[user_id].user.name}
                                 </p>
                                 {winningGroupId == user_id &&

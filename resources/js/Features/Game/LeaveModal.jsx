@@ -1,6 +1,5 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import TextInput from '../../Components/TextInput';
 import { selectGameCode, leaveGame } from './gameSlice';
 
 import { setShowLeaveModal, selectShowLeaveModal, setShowRejoin } from '../Overlays/overlaysSlice';

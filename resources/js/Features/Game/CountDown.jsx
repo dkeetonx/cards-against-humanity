@@ -53,9 +53,7 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
             && elapsed) {
             setBtnEnabled(true);
         }
-        else if (playingStatus === "playing"
-            && currentUserReady
-            && !currentUserVoted
+        else if (isQuestioner
             && gameProgress === "revealing_winner") {
             setBtnEnabled(true);
         }
@@ -146,12 +144,12 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         return zeroString + n;
     }
 
-    const groupLook = "w-20 p-2 border border-neutral-content rounded-btn "
+    const groupLook = "w-20 p-2 border border-neutral-content rounded-btn text-lg"
     return (
-        <div className="flex flex-row bg-base-200  rounded-btn">
-            <Share className={`flex items-center justify-center text-lg rounded-r-none ${groupLook}`} />
+        <div className="flex flex-row bg-base-200 rounded-btn">
+            <Share className={`flex items-center justify-center rounded-r-none ${groupLook}`} />
             <div className={`flex items-center justify-center border-x-0 rounded-none ${groupLook}`}>
-                <p className="font-mono text-xl">
+                <p className="font-mono text-md">
                     <span>{zeroPad(minutes, 2)}</span>:
                     <span>{zeroPad(seconds, 2)}</span>
                 </p>
@@ -163,7 +161,7 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
                 */}
             </div>
             <button
-                className={`btn btn-primary rounded-l-none normal-case text-lg ${groupLook} ${!btnEnabled ? "btn-disabled" : "animate-none"} ${processing ? "loading" : ""}`}
+                className={`btn btn-primary btn-md rounded-l-none normal-case ${groupLook} ${!btnEnabled ? "btn-disabled" : "animate-none"} ${processing ? "loading" : ""}`}
                 onClick={handleButtonClicked}
             >
                 {processing ?

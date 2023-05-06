@@ -4,6 +4,8 @@ import {
     createEntityAdapter,
     createSelector,
 } from '@reduxjs/toolkit';
+import { selectGameId } from '../Game/gameSlice';
+
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
 
 function initializeEcho(id, thunkAPI) {
@@ -18,7 +20,10 @@ function initializeEcho(id, thunkAPI) {
             console.log(`UserUpdated seen: ${user_data}`);
             const state = getState();
             console.log(state);
-            dispatch(updateUser(user_data));
+            const gameRoomId = selectGameId(getState());
+            if (user_data.game_room_id === gameRoomId) {
+                dispatch(updateUser(user_data));
+            }
         })
 }
 
@@ -82,13 +87,13 @@ const usersSlice = createSlice({
 
             })
             .addCase(admitWaitingUser.fulfilled, (state, action) => {
-                
+
             })
             .addCase(denyWaitingUser.pending, (state, action) => {
 
             })
             .addCase(denyWaitingUser.fulfilled, (state, action) => {
-                
+
             })
     }
 });
@@ -119,3 +124,29 @@ export const selectAllPlaying = createSelector(
     [selectAllUsers],
     (users) => users.filter(user => user.playing_status === "playing")
 );
+
+import {
+    faHourglass,
+} from '@fortawesome/free-regular-svg-icons';
+import {
+    faGamepad,
+    faGlasses,
+    faCheck,
+} from '@fortawesome/free-solid-svg-icons';
+
+export function playingStatusIcon(playingStatus) {
+    switch (playingStatus) {
+        case "playing":
+            return faGamepad;
+        case "spectating":
+            return faGlasses;
+        case "waiting":
+            return faHourglass;
+        default:
+            return null;
+    }
+}
+
+export function readyStatusIcon(ready) {
+    return ready ? faCheck : faGamepad
+}
