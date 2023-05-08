@@ -33,7 +33,7 @@ class UserUpdated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        $userChannel = new PrivateChannel('App.Models.User.'.$this->user->id);
+        $userChannel = new PresenceChannel('App.Models.User.'.$this->user->id);
         if ($this->user->game_room_id)
         {
             return [
@@ -48,6 +48,6 @@ class UserUpdated implements ShouldBroadcast
 
     public function broadcastWith() : array
     {
-        return $this->user->toArray();
+        return $this->user->attributesToArray();
     }
 }

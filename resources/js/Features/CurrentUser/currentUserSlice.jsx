@@ -16,10 +16,9 @@ function initializeEcho({ id, oldUserId }, thunkAPI) {
 
     if (id !== oldUserId) {
         console.log(`initializing echo App.Models.User.${id}`);
-        window.Echo.private(`App.Models.User.${id}`)
+        window.Echo.join(`App.Models.User.${id}`)
             .listen('UserUpdated', (user_data) => {
                 console.log("UserUpdated");
-                console.log(user_data);
                 dispatch(setCurrentUser(user_data));
 
                 if (user_data.game_room_id === null) {

@@ -112,11 +112,14 @@ class GameRoom extends Model
         $questionerTurnIndex = $this->questioner() ? $this->questioner()->turn_index : 0;
 
         $next = $this->players()->orderBy('turn_index', 'asc')
+            ->where('connected', '=', true)
             ->where('turn_index', '>', $questionerTurnIndex)
             ->first();
         if (!$next)
         {
+            Log::debug("nextTurnPlayer rolling over");
             $next = $this->players()->orderBy('turn_index', 'asc')
+                ->where('connected', '=', true)
                 ->first();
         }
         return $next;
@@ -469,7 +472,7 @@ class GameRoom extends Model
 
     public function answering()
     {
-        if (!$this->current_questioner)
+        if ($this->current_questioner === null)
         {
             Log::debug("answering: Skipping to next because current_questioner was not set");
             $this->progressGame();
@@ -489,7 +492,7 @@ class GameRoom extends Model
 
     public function picking_winner()
     {
-        if (!$this->current_questioner)
+        if ($this->current_questioner === null)
         {
             Log::debug("picking_winner: Skipping to next because current_questioner was not set");
             $this->progressGame();
@@ -517,7 +520,7 @@ class GameRoom extends Model
 
     public function revealing_winner()
     {
-        if (!$this->current_questioner)
+        if ($this->current_questioner === null)
         {
             Log::debug("revealing_winner: Skipping to next because current_questioner was not set");
             $this->progressGame();

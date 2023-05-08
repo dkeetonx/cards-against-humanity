@@ -72,14 +72,19 @@ class GameController extends Controller
         if(!$user)
         {
             $user = new User;
+            $user->name = $request->get('name');
+        }
+        
+        $gr = GameRoom::where('room_code', $request->room_code)->first();
+
+        if ($user->game_room_id === $gr->id)
+        {
+            return $user;
         }
         else
         {
             $user->leaveGameRoom();
         }
-
-        $gr = GameRoom::where('room_code', $request->room_code)->first();
-        $user->name = $request->get('name');
 
         $user->game_room_id = $gr->id;
 
@@ -203,7 +208,7 @@ class GameController extends Controller
         {
             if ($targetUser->gameRoom->progress == "prestart")
             {
-                $targetUser->playing_status = "playing";
+                $targetUser->playing_stagtus = "playing";
             }
             else {
                 $targetUser->playing_status = "spectating";
@@ -239,6 +244,12 @@ class GameController extends Controller
         if (!$user || !$user->gameRoom)
         {
             return [];
+        }
+
+        foreach ($user->gameRoom->users as $user)
+        {
+            $user->points = 0;
+            $user->save();
         }
 
         $user->gameRoom->progressGame();
@@ -307,16 +318,23 @@ class GameController extends Controller
                 return [];
                 break;
             case "choosing_qcard":
+                if (!$user->gameRoom->questioner())
+                {
+                    return [];
+                }
+
                 if ($user->id === $user->gameRoom->questioner()->id)
                 {
                     return $user->userQCards()
                         ->where('status', '=', 'in_hand')
+                        ->where('user_id', '=', $user->gameRoom->questioner()->id)
                         ->with('card')
                         ->get();
                 }
                 else {
                     return $user->gameRoom->userQuestionCards()
                         ->where('status', '=', 'in_hand')
+                        ->where('user_id', '=', $user->gameRoom->questioner()->id)
                         ->with('card')
                         ->get();
                 }
@@ -497,5 +515,43 @@ class GameController extends Controller
         $user->save();
 
         return $this->acards($request);
+    }
+
+    public function presence(Request $request)
+    {
+        foreach ($request->events as $event)
+        {
+            if (!array_key_exists('user_id', $event))
+            {
+                return [];
+            }
+            if (!array_key_exists('name', $event))
+            {
+                return [];
+            }
+
+            $user = User::find($event['user_id']);
+            switch ($event['name'])
+            {
+                case "member_added":
+                    if (!$user) return;
+                    Log::debug(" member_added: {$user->id}");
+                    $user->connected = true;
+                    $user->save();
+                    return [];
+
+                case "member_removed":
+                    if (!$user) return;
+                    Log::debug(" member_removed: {$user->id}");
+                    $user->connected = false;
+                    $user->save();
+                    return [];
+
+                default:
+                    //ignored
+            }
+            Log::debug("event: ".json_encode($event));
+        }
+        return [];
     }
 }

@@ -49,7 +49,6 @@ export default function JoinDialog(props) {
 
     async function handleSubmit(event) {
         event.preventDefault();
-        console.log("JoinDialog Submitted");
 
         if (canUpdate(gameFetchStatus)) {
             setProcessing(true);

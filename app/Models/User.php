@@ -85,9 +85,21 @@ class User extends Authenticatable
         return $this->userACards()->where('status', 'in_hand')->count();
     }
 
-    public function leaveGameroom($save = false)
+    public function leaveGameRoom($save = false)
     {
-        event(new \App\Events\UserLeftGame($this));
+        $wasCurrentQuestioner = false;
+        if ($this->gameRoom && $this->gameRoom->current_questioner == $this->id)
+        {
+            $wasCurrenQuestioner = true;
+            $gameRoom = $this->gameRoom;
+        }
+
+        foreach ($this->userQCards as $uqc)
+        {
+            $uqc->status = "in_trash";
+            $uqc->save();
+        }
+
         $this->game_room_id = null;
         $this->turn_index = 0;
         $this->has_free_redraw = false;
@@ -99,6 +111,14 @@ class User extends Authenticatable
         {
             $this->save();
         }
+
+        if ($wasCurrentQuestioner)
+        {
+            $gameRoom->current_questioner = null;
+            $gameRoom->progressGame();
+            $gameRoom->save();
+        }
+        event(new \App\Events\UserLeftGame($this));
         return true;
     }
 
@@ -241,12 +261,12 @@ out:
 
         self::updating(function($user)
         {
-            if (!$user->original['game_room_id'])
+            if (!array_key_exists('game_room_id', $user->original) || !$user->original['game_room_id'])
             {
                 return true;
             }
 
-            if ($user->original['game_room_id'] !== $user->game_room_id)
+            if ($user->isDirty('game_room_id'))
             {
                 $newGameRoomId = $user->game_room_id;
                 $user->game_room_id = $user->original['game_room_id'];
@@ -270,9 +290,7 @@ out:
 
             if ($user->gameRoom)
             {
-                if (!$user->original['playing_status']
-                    ||
-                    $user->original['playing_status'] !== $user->playing_status)
+                if ($user->isDirty('playing_status'))
                 {
                     Log::debug("playing status changed");
                     if ($user->playing_status === "playing")
@@ -316,6 +334,33 @@ out:
                 Log::debug("user->gameRoom->countVotes()");
                 $user->gameRoom->countVotes();
                 $user->gameRoom->save();
+            }
+
+            if ($user->wasChanged('connected'))
+            {
+                if (!$user->connected && $user->gameRoom)
+                {
+                    Log::debug("user disconnected, leaving game room");
+                    $user->leaveGameRoom(true);
+                }
+            }
+
+            if ($user->wasChanged('playing_status'))
+            {
+                if ($user->playingStatus == "spectating"
+                    && $user->gameRoom
+                    && $user->gameRoom->current_questioner === $user->id)
+                {
+                    Log::debug("questioner became spectator");
+                    foreach ($this->userQCards as $uqc)
+                    {
+                        $uqc->status = "in_trash";
+                        $uqc->save();
+                    }
+                    $this->current_questioner = null;
+                    $this->gameRoom->progressGame();
+                    $this->save();
+                }
             }
             Log::debug("user updated");
             Log::debug($user->playing_status);

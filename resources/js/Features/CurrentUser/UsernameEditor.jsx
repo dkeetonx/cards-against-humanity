@@ -22,7 +22,6 @@ export default function UserNameEditor() {
 
     async function handleNameSubmit(event) {
         event.preventDefault();
-        console.log("submitted");
 
         try {
             setNameError(null);

@@ -59,7 +59,6 @@ export default function PlayerHand({ wrap }) {
     const [processing, setProcessing] = useState(false);
     async function handleAnswersSubmit(event) {
         event.preventDefault();
-        console.log("Selecting Answer cards");
 
         setProcessing(true);
         try {
@@ -73,7 +72,6 @@ export default function PlayerHand({ wrap }) {
 
     function handleRedrawHand(event) {
         event.preventDefault();
-        console.log("Using Free Redraw");
 
         dispatch(setShowRedrawModal(true));
     }

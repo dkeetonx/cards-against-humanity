@@ -41,7 +41,6 @@ const notificationsSlice = createSlice({
 
 export const addNotification = (notification) => {
     return function (dispatch) { //redux-toolkit provides thunk middleware
-        console.log("addNotification");
         dispatch(_addNotification(notification));
         setTimeout(() => {
             dispatch(dismissNotification(notification.id));

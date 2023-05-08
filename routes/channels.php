@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Broadcast;
 */
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+    if ((int) $user->id === (int) $id)
+    {
+        return [ 'id' => $user->id, 'name' => $user->name ];
+    }
+    return null;
 });
 
 Broadcast::channel('App.Models.GameRoom.{id}', function ($user, $id) {

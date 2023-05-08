@@ -9,13 +9,17 @@ import { selectCurrentUser } from '../CurrentUser/currentUserSlice';
 import { selectAllUsers } from '../Users/usersSlice';
 import { setAnswerCard } from '../Cards/cardsSlice';
 
+function leaveEchoChannel(id, thunkAPI) {
+    console.log(`leaving echo channel App.Models.GameRoom.${id}`);
+    window.Echo.leave(`App.Models.GameRoom.${id}`);
+}
+
 function initializeEcho(id, thunkAPI) {
     const { dispatch, getState } = thunkAPI;
     console.log(`initializing echo App.Models.GameRoom.${id}`);
     window.Echo.private(`App.Models.GameRoom.${id}`)
         .listen('GameUpdated', (game_data) => {
             console.log("GameUpdated");
-            console.log(game_data);
             const currentUser = selectCurrentUser(getState());
             if (currentUser.game_room_id === game_data.id) {
                 dispatch(setGame(game_data));
@@ -23,7 +27,6 @@ function initializeEcho(id, thunkAPI) {
         })
         .listen('UserAnswerCardChanged', (userAnswerCard) => {
             console.log("UserAnswerCardChanged");
-            console.log(userAnswerCard);
             const currentUser = selectCurrentUser(getState());
             if (currentUser.game_room_id === userAnswerCard.game_room_id) {
                 dispatch(setAnswerCard(userAnswerCard));
@@ -43,6 +46,9 @@ export const fetchGame = createAsyncThunk(
         }
 
         if (game.id !== oldGameId) {
+            if (oldGameId) {
+                leaveEchoChannel(oldGameId, thunkAPI);
+            }
             initializeEcho(game.id, thunkAPI);
         }
 
@@ -54,8 +60,6 @@ export const startGame = createAsyncThunk(
     'game/startGame',
     async (_, thunkAPI) => {
         const { data: game } = await window.axios.post('/api/start', {});
-
-        console.log(game);
 
         return game;
     }
@@ -82,7 +86,6 @@ export const nextRound = createAsyncThunk(
 export const submitWinner = createAsyncThunk(
     'game/submitWinner',
     async (winning_group_id, thunkAPI) => {
-        console.log(winning_group_id);
         const { data: game } = await window.axios.post('/api/winner', {
             winning_group_id,
         });

@@ -10,17 +10,14 @@ export const fetchQuestionCards = createAsyncThunk(
     async (_, thunkAPI) => {
         const { data: cards } = await window.axios.get('/api/qcards');
 
-        console.log(cards);
         return cards;
     }
 )
 export const fetchAnswerCards = createAsyncThunk(
     'cards/fetchAnswerCards',
     async (_, thunkAPI) => {
-        console.log('fetchAnswerCards');
         const { data: cards } = await window.axios.get('/api/acards');
 
-        console.log(cards);
         return cards;
     }
 )
@@ -28,10 +25,8 @@ export const fetchAnswerCards = createAsyncThunk(
 export const pickQuestionCard = createAsyncThunk(
     'cards/pickQuestionCard',
     async(uqc, thunkAPI) => {
-        console.log('pickQuestionCard');
         const { data: card } = await window.axios.post('/api/question', uqc);
 
-        console.log(card);
         return card;
     }
 )
@@ -39,10 +34,8 @@ export const pickQuestionCard = createAsyncThunk(
 export const pickAnswerCards = createAsyncThunk(
     'cards/pickAnswerCards',
     async(uacs, thunkAPI) => {
-        console.log('pickQuestionCard');
         const { data: cards } = await window.axios.post('/api/answer', uacs);
 
-        console.log(cards);
         return cards;
     }
 )
@@ -50,12 +43,10 @@ export const pickAnswerCards = createAsyncThunk(
 export const revealAnswerCard = createAsyncThunk(
     'cards/revealAnswerCard',
     async(uac, thunkAPI) => {
-        console.log('revealAnswerCard');
         const { data: card } = await window.axios.post('/api/reveal', {
             user_answer_card_id: uac.id
         });
 
-        console.log(card);
         return card;
     }
 )
@@ -98,11 +89,9 @@ const cardsSlice = createSlice({
             cardsAdapter.removeOne(state.questionCards, action.payload);
         },
         setQuestionCards(state, action) {
-            console.log('setQuestionCards');
             cardsAdapter.setAll(state.questionCards, action.payload);
         },
         setQuestionCard(state, action) {
-            console.log('setQuestionCard');
             cardsAdapter.setOne(state.questionCards, action.payload);
         },
         addAnswerCard(state, action) {
@@ -115,7 +104,6 @@ const cardsSlice = createSlice({
             cardsAdapter.setOne(state.answerCards, action.payload);
         },
         setAnswerCards(state, action) {
-            console.log('setAnswerCards');
             cardsAdapter.setAll(state.answerCards, action.payload);
         },
     },
@@ -124,21 +112,16 @@ const cardsSlice = createSlice({
             .addCase(fetchQuestionCards.pending, (state, action) => {
             })
             .addCase(fetchQuestionCards.fulfilled, (state, { payload }) => {
-                console.log(`fulfilled ${payload}`);
                 cardsSlice.reducer(state, { type: 'cards/setQuestionCards', payload });
             })
             .addCase(fetchAnswerCards.pending, (state, action) => {
-                console.log('fetchAnswerCards.pending');
             })
             .addCase(fetchAnswerCards.fulfilled, (state, { payload }) => {
-                console.log('fetchAnswerCards.fulfilled');
                 cardsSlice.reducer(state, { type: 'cards/setAnswerCards', payload });
             })
             .addCase(redrawHand.pending, (state, action) => {
-                console.log('redrawHand.pending');
             })
             .addCase(redrawHand.fulfilled, (state, { payload }) => {
-                console.log('redrawHand.fulfilled');
                 cardsSlice.reducer(state, { type: 'cards/setAnswerCards', payload });
             });
     }

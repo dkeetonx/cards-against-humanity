@@ -18,8 +18,6 @@ function initializeEcho(id, thunkAPI) {
         })
         .listen('UserUpdated', (user_data) => {
             console.log(`UserUpdated seen: ${user_data}`);
-            const state = getState();
-            console.log(state);
             const gameRoomId = selectGameId(getState());
             if (user_data.game_room_id === gameRoomId) {
                 dispatch(updateUser(user_data));
@@ -32,7 +30,6 @@ export const fetchUsers = createAsyncThunk(
     async (gameId, thunkAPI) => {
         const { data: users } = await window.axios.get(`/api/users`);
 
-        console.log(users);
         initializeEcho(gameId, thunkAPI);
 
         return users;
@@ -81,7 +78,6 @@ const usersSlice = createSlice({
                 usersAdapter.setAll(state, action.payload);
             })
             .addCase(fetchUsers.rejected, (state, action) => {
-                console.log(`fetchUsers.rejected: ${action}`);
             })
             .addCase(admitWaitingUser.pending, (state, action) => {
 

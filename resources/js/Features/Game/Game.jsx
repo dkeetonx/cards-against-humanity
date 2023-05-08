@@ -68,7 +68,6 @@ export default function Game() {
 
     useEffect(() => {
         if (gameStoreStatus !== 'prestart' && playCode !== gameCode) {
-            console.log(`navigating: gameCode = ${gameCode}, gameId = ${gameId}`);
             navigate(`/join/${playCode}`);
         }
     }, [gameStoreStatus, gameCode, navigate]);
@@ -124,7 +123,6 @@ export default function Game() {
     const [processing, setProcessing] = useState(false);
     async function handleQuestionCardSubmit(event) {
         event.preventDefault();
-        console.log("Selecting Question Card");
 
         setProcessing(true);
         try {
@@ -147,8 +145,6 @@ export default function Game() {
         </div>
     }
 
-    console.log("Game");
-    console.log(questionCards);
     return (
         <>
             <div className="flex flex-col w-full h-full">

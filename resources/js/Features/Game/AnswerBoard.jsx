@@ -33,7 +33,6 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                 };
             }
         }
-        console.log(newGroups);
         setGroups(newGroups);
     }, [answerCards, users]);
 
@@ -49,7 +48,6 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
     const [winnerGroup, setWinnerGroup] = useState(0);
     function handleSetWinnerGroup(id) {
         if (isQuestioner) {
-            console.log(`setting winnergroup to ${id}`)
             setWinnerGroup(id);
         }
     }

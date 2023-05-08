@@ -9,7 +9,6 @@ export const fetchPacks = createAsyncThunk(
     async (_, thunkAPI) => {
         const { data: packs } = await window.axios.get('/api/packs');
 
-        console.log(packs);
         return packs;
     }
 )
