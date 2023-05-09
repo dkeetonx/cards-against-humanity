@@ -56,13 +56,14 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
             setBtnEnabled(true);
         }
         else if (isQuestioner
-            && gameProgress === "revealing_winner") {
+            && gameProgress === "revealing_winner"
+            && elapsed) {
             setBtnEnabled(true);
         }
         else {
             setBtnEnabled(false);
         }
-    }, [gameProgress, playingStatus, currentUserReady, currentUserVoted, elapsed]);
+    }, [gameProgress, playingStatus, currentUserReady, currentUserVoted, elapsed, isOwner]);
 
     const daysElRef = useRef(null);
     const hoursElRef = useRef(null);
@@ -128,13 +129,14 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         const interval = setInterval(getTime, 1000);
 
         return () => clearInterval(interval);
-    }, [deadline, playingStatus, currentUserReady, animate]);
+    }, [deadline, elapsed, playingStatus, currentUserReady, animate]);
 
 
+    const [autoNextTimer, setAutoNextTimer] = useState(null);
     useEffect(() => {
         if (elapsed && isQuestioner && gameProgress === "revealing_winner") {
-            handleButtonClicked();
-        }    
+            setAutoNextTimer(setTimeout(handleButtonClicked, 5000));
+        }
     }, [gameProgress, elapsed, isQuestioner, dispatch]);
 
     const [btnData, setBtnData] = useState(SKIP);
@@ -155,7 +157,6 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
             case "revealing_winner":
                 if (isQuestioner) {
                     setBtnData(NEXT);
-                    setBtnEnabled(true);
                 }
                 else {
                     setBtnData(SKIP);
@@ -172,6 +173,7 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
 
         setProcessing(true);
         try {
+            clearTimeout(autoNextTimer);
             await dispatch(btnData.submit()).unwrap();
         }
         catch (error) {
@@ -196,7 +198,7 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         <div className="flex flex-row bg-base-200 rounded-btn">
             <Share className={`flex items-center justify-center rounded-r-none ${groupLook}`} />
             <div className={`flex items-center justify-center border-x-0 rounded-none ${groupLook}`}>
-                <span className={`${animate ? "countdown" :""} font-mono text-sm sm:text-xl`}>
+                <span className={`${animate ? "countdown" :""} ${(elapsed && animate) ? "animate-pulse" : ""} font-mono text-sm sm:text-xl`}>
                     <span ref={minutesElRef}>00</span>:
                     <span ref={secondsElRef}>00</span>
                 </span>

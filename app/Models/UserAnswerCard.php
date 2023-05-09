@@ -20,10 +20,6 @@ class UserAnswerCard extends Model
         'status'
     ];
 
-    protected $dispatchesEvents = [
-        'updated' => \App\Events\UserAnswerCardChanged::class,
-    ];
-
     public function gameRoom() : BelongsTo
     {
         return $this->belongsTo(\App\Models\GameRoom::class);
@@ -37,5 +33,61 @@ class UserAnswerCard extends Model
     public function user() : BelongsTo
     {
         return $this->belongsTo(\App\Models\User::class);
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::created(function($uac)
+        {
+            event(new \App\Events\UserAnswerCardDrawn($uac));
+            return true;
+        });
+
+        self::updated(function($uac)
+        {
+            $trashed = false;
+            if ($uac->wasChanged('status'))
+            {
+                $uac->syncOriginalAttribute('status');
+                $uac->syncChanges();
+
+                switch($uac->status)
+                {
+                    case 'in_hand':
+                        event(new \App\Events\UserAnswerCardDrawn($uac));
+                        break;
+                    case 'in_play':
+                        event(new \App\Events\UserAnswerCardPlayed($uac));
+                        break;
+                    case 'in_trash':
+                        $trashed = true;
+                        break;
+                }
+            }
+            if ($uac->wasChanged('revealed'))
+            {
+                $uac->syncOriginalAttribute('revealed');
+                $uac->syncChanges();
+
+                if ($uac->revealed)
+                {
+                    event(new \App\Events\UserAnswerCardRevealed($uac));
+                }
+            }
+
+            event(new \App\Events\UserAnswerCardChanged($uac));
+            if ($trashed)
+                event(new \App\Events\UserAnswerCardTrashed($uac));
+
+            return true;
+        });
+
+        self::deleted(function($uac)
+        {
+            event(new \App\Events\UserAnswerCardRecycled($uac));
+            return true;
+        });
     }
 }

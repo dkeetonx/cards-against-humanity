@@ -7,7 +7,7 @@ import {
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
 import { selectCurrentUser } from '../CurrentUser/currentUserSlice';
 import { selectAllUsers } from '../Users/usersSlice';
-import { setAnswerCard } from '../Cards/cardsSlice';
+import { setAnswerCard, setQuestionCard } from '../Cards/cardsSlice';
 
 function leaveEchoChannel(id, thunkAPI) {
     console.log(`leaving echo channel App.Models.GameRoom.${id}`);
@@ -21,15 +21,48 @@ function initializeEcho(id, thunkAPI) {
         .listen('GameUpdated', (game_data) => {
             console.log("GameUpdated");
             const currentUser = selectCurrentUser(getState());
-            if (currentUser.game_room_id === game_data.id) {
+            if (currentUser.game_room_id == game_data.id) {
                 dispatch(setGame(game_data));
+            }
+        })
+        .listen('UserAnswerCardDrawn', (userAnswerCard) => {
+            console.log("UserAnswerCardDrawn");
+            const currentUser = selectCurrentUser(getState());
+            if (currentUser.game_room_id == userAnswerCard.game_room_id) {
+                dispatch(setAnswerCard(userAnswerCard));
+            }
+            else {
+                console.log("not dispatching setAnswerCard");
             }
         })
         .listen('UserAnswerCardChanged', (userAnswerCard) => {
             console.log("UserAnswerCardChanged");
             const currentUser = selectCurrentUser(getState());
-            if (currentUser.game_room_id === userAnswerCard.game_room_id) {
+            if (currentUser.game_room_id == userAnswerCard.game_room_id) {
                 dispatch(setAnswerCard(userAnswerCard));
+            }
+            else {
+                console.log("not dispatching setAnswerCard");
+            }
+        })
+        .listen('UserQuestionCardDrawn', (userQuestionCard) => {
+            console.log("UserQuestionCardDrawn");
+            const currentUser = selectCurrentUser(getState());
+            if (currentUser.game_room_id == userQuestionCard.game_room_id) {
+                dispatch(setQuestionCard(userQuestionCard));
+            }
+            else {
+                console.log("not dispatching setQuestionCard");
+            }
+        })
+        .listen('UserQuestionCardChanged', (userQuestionCard) => {
+            console.log("UserQuestionCardChanged");
+            const currentUser = selectCurrentUser(getState());
+            if (currentUser.game_room_id == userQuestionCard.game_room_id) {
+                dispatch(setQuestionCard(userQuestionCard));
+            }
+            else {
+                console.log("not dispatching setQuestionCard");
             }
         })
 }

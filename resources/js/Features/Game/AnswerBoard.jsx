@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-    selectAllAnswerCards,
+    selectAnswerCardsInPlay,
     revealAnswerCard,
 } from '../Cards/cardsSlice';
 import {
@@ -18,7 +18,7 @@ import pseudoRandom from 'pseudo-random';
 export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
     const winningGroupId = useSelector(selectWinningGroupId);
     const currentQuestionerId = useSelector(selectCurrentQuestionerId);
-    const answerCards = useSelector(selectAllAnswerCards);
+    const answerCards = useSelector(selectAnswerCardsInPlay);
     const answerCount = useSelector(selectAnswerCount);
     const users = useSelector(selectAllUsers);
     const dispatch = useDispatch();
@@ -39,8 +39,6 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
             }
         }
         const newGroupIds = shuffle(Object.keys(newGroups), currentQuestionerId);
-        console.log(newGroupIds);
-        console.log(newGroups);
         setGroupIds(newGroupIds);
         setGroups(newGroups);
     }, [answerCards, currentQuestionerId, users]);
@@ -91,7 +89,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
             }>
                 {groupIds.map(user_id => (
                     <div key={user_id} className={`relative card flex flex-row ${answerCount > 1 ? "mt-1 border-t-4 border-primary" : ""}`}>
-                        {groups[user_id].cards.filter(uac => uac.status == "in_play").map(uac => (
+                        {groups[user_id].cards.map(uac => (
                             uac.revealed ?
                                 <AnswerCard
                                     key={uac.id}
@@ -136,7 +134,8 @@ function shuffle(array, seed) {
     const prng = pseudoRandom(seed);
 
     for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(prng.random() * (i + 1));
+        const random = prng.random();
+        const j = Math.floor(Math.abs(random) * (i + 1));
         const temp = array[i];
         array[i] = array[j];
         array[j] = temp;

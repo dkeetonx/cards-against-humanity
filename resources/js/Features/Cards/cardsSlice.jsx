@@ -3,8 +3,10 @@ import {
     createSlice,
     createAsyncThunk,
     createEntityAdapter,
+    createSelector,
 } from '@reduxjs/toolkit';
 import { notifyOfErrors } from '../Overlays/notificationsSlice';
+import { faSleigh } from '@fortawesome/free-solid-svg-icons';
 
 export const fetchQuestionCards = createAsyncThunk(
     'cards/fetchQuestionCards',
@@ -80,7 +82,7 @@ const cardsAdapter = createEntityAdapter({
 });
 
 const blankCardsAdapter = createEntityAdapter({
-    sortComparer: (a,b) => a.user_answer_card_id - b.user_answer_card_id,
+    sortComparer: (a, b) => a.user_answer_card_id - b.user_answer_card_id,
     selectId: entity => entity.user_answer_card_id,
 });
 
@@ -103,6 +105,9 @@ const cardsSlice = createSlice({
         setQuestionCards(state, action) {
             cardsAdapter.setAll(state.questionCards, action.payload);
         },
+        upsertQuestionCards(state, action) {
+            cardsAdapter.upsertMany(state.questionCards, action.payload);
+        },
         setQuestionCard(state, action) {
             cardsAdapter.setOne(state.questionCards, action.payload);
         },
@@ -118,6 +123,9 @@ const cardsSlice = createSlice({
         setAnswerCards(state, action) {
             cardsAdapter.setAll(state.answerCards, action.payload);
         },
+        upsertAnswerCards(state, action) {
+            cardsAdapter.upsertMany(state.answerCards, action.payload);
+        },
         upsertBlankCard(state, action) {
             blankCardsAdapter.upsertOne(state.blanks, action.payload);
         },
@@ -130,17 +138,17 @@ const cardsSlice = createSlice({
             .addCase(fetchQuestionCards.pending, (state, action) => {
             })
             .addCase(fetchQuestionCards.fulfilled, (state, { payload }) => {
-                cardsSlice.reducer(state, { type: 'cards/setQuestionCards', payload });
+                cardsSlice.reducer(state, { type: 'cards/upsertQuestionCards', payload });
             })
             .addCase(fetchAnswerCards.pending, (state, action) => {
             })
             .addCase(fetchAnswerCards.fulfilled, (state, { payload }) => {
-                cardsSlice.reducer(state, { type: 'cards/setAnswerCards', payload });
+                cardsSlice.reducer(state, { type: 'cards/upsertAnswerCards', payload });
             })
             .addCase(redrawHand.pending, (state, action) => {
             })
             .addCase(redrawHand.fulfilled, (state, { payload }) => {
-                cardsSlice.reducer(state, { type: 'cards/setAnswerCards', payload });
+                cardsSlice.reducer(state, { type: 'cards/upsertAnswerCards', payload });
             });
     }
 });
@@ -149,6 +157,7 @@ export default cardsSlice.reducer;
 
 export const {
     setAnswerCard,
+    setQuestionCard,
     upsertBlankCard,
     removeBlankCard
 } = cardsSlice.actions;
@@ -167,3 +176,54 @@ export const {
     selectById: selectBlankById,
     selectAll: selectAllBlankCards,
 } = blankCardsAdapter.getSelectors(state => state.cards.blanks);
+
+const selectCurrentUserId = (state) => state.currentUser.id;
+const selectCurrentUserGameId = (state) => state.currentUser.game_room_id;
+const selectCurrentQuestionerId = (state) => state.game.current_questioner;
+
+export const selectCurrentUserHand = createSelector(
+    [selectAllAnswerCards, selectCurrentUserId, selectCurrentUserGameId],
+    (aCards, currentUserId, gameId) => aCards.filter(card => {
+        if (card.game_room_id != gameId)
+            return false;
+
+        if (card.user_id != currentUserId)
+            return false;
+
+        if (card.status == "in_hand")
+            return true;
+        else
+            return false;
+    })
+);
+export const selectAnswerCardsInPlay = createSelector(
+    [selectAllAnswerCards, selectCurrentUserGameId],
+    (aCards, gameId) => aCards.filter(card => {
+        if (card.game_room_id != gameId)
+            return false;
+
+        if (card.status == "in_play")
+            return true;
+        else
+            return false;
+    }),
+)
+export const selectQuestionCards = createSelector(
+    [selectAllQuestionCards, selectCurrentUserGameId, selectCurrentQuestionerId],
+    (qCards, gameId, questionerId) => qCards.filter(card => {
+
+        if (card.game_room_id != gameId)
+            return false;
+
+        if (card.user_id != questionerId)
+            return false;
+
+        switch (card.status) {
+            case "in_hand":
+                return true;
+            case "in_play":
+                return true;
+        }
+        return false;
+    }),
+);

@@ -9,24 +9,22 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Log;
+use Illuminate\Database\Eloquent\Model;
 
-class UserLeftGame implements ShouldBroadcast
+class ModelEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $user;
-    public $gameRoom;
+    public Model $model;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($user, $gameRoom)
+    public function __construct($model)
     {
         //
-        $this->user = $user;
-        $this->gameRoom = $gameRoom;
+        $this->model = $model;
     }
 
     /**
@@ -36,11 +34,6 @@ class UserLeftGame implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('App.Models.GameRoom.'.$this->gameRoom->id);
-    }
-
-    public function broadcastWith() : array
-    {
-        return $this->user->attributesToArray();
+        return new PrivateChannel('channel-name');
     }
 }

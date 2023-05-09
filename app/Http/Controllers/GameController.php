@@ -84,29 +84,10 @@ class GameController extends Controller
         {
             return $user;
         }
-        else
-        {
-            $user->leaveGameRoom();
-        }
 
         $user->game_room_id = $gr->id;
-
-        if  ($gr->has_waiting_room)
-        {
-            $user->playing_status = "waiting";
-        }
-        else {
-            if ($gr->progress == "prestart")
-            {
-                $user->playing_status = "playing";
-            }
-            else {
-                $user->playing_status = "spectating";
-            }
-        }
-
-        $user->has_free_redraw = $gr->allow_hand_redraw;
         $user->save();
+
         Auth::login($user, true);
 
         return $user;
@@ -115,7 +96,9 @@ class GameController extends Controller
     public function leave(Request $request)
     {
         $user = Auth::user();
-        $user->leaveGameRoom(true);
+        $user->game_room_id = null;
+        $user->save();
+
         return $user;
     }
 
@@ -149,7 +132,6 @@ class GameController extends Controller
         // Do some $request->packs validation here. like minimum card counts
 
         $user = Auth::user();
-        $user->leaveGameRoom();
 
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $retries = 0;
@@ -235,7 +217,8 @@ class GameController extends Controller
             &&
             $targetUser->playing_status == "waiting")
         {
-            $targetUser->leaveGameRoom(true);
+            $targetUser->game_room_id = null;
+            $targetUser->save();
         }
         return [];
     }
@@ -255,7 +238,7 @@ class GameController extends Controller
             $user->save();
         }
 
-        $user->gameRoom->progressGame();
+        $user->gameRoom->progress = $user->gameRoom->nextProgress();
         $user->gameRoom->save();
         return [];
     }
@@ -295,7 +278,7 @@ class GameController extends Controller
             return [];
         }
 
-        $user->gameRoom->progressGame();
+        $user->gameRoom->progress = $user->gameRoom->nextProgress();
         $user->gameRoom->save();
 
         return $user->gameRoom->toArray();
@@ -315,44 +298,13 @@ class GameController extends Controller
             return [];
         }
 
-        switch ($user->gameRoom->progress)
-        {
-            case "prestart":
-                return [];
-                break;
-            case "choosing_qcard":
-                if (!$user->gameRoom->questioner())
-                {
-                    return [];
-                }
-
-                if ($user->id === $user->gameRoom->questioner()->id)
-                {
-                    return $user->userQCards()
-                        ->where('status', '=', 'in_hand')
-                        ->where('user_id', '=', $user->gameRoom->questioner()->id)
-                        ->with('card')
-                        ->get();
-                }
-                else {
-                    return $user->gameRoom->userQuestionCards()
-                        ->where('status', '=', 'in_hand')
-                        ->where('user_id', '=', $user->gameRoom->questioner()->id)
-                        ->with('card')
-                        ->get();
-                }
-                break;
-
-            case "picking_winner":
-            case "answering":
-            case "revealing_winner":
-                    return $user->gameRoom->userQuestionCards()
-                        ->where('status', '=', 'in_play')
-                        ->with('card')
-                        ->get();
-                break;
-        }
+        return $user->gameRoom->userQuestionCards()
+            ->where('status', '=', 'in_hand')
+            ->orWhere('status', '=', 'in_play')
+            ->with('card')
+            ->get();
     }
+
     public function acards(Request $request)
     {
         $user = Auth::user();
@@ -362,37 +314,17 @@ class GameController extends Controller
             return [];
         }
 
-        switch ($user->gameRoom->progress)
-        {
-            case "prestart":
-                return [];
-                break;
-            case "choosing_qcard":
-            case "answering":
-                if ($user->gameRoom->questioner() && $user->id === $user->gameRoom->questioner()->id)
-                {
-                    return [];
-                }
-                else if ($user->playing_status === "spectating")
-                {
-                    return [];
-                }
-                else {
-                    return $user->userACards()
-                        ->where('status', '=', 'in_hand')
-                        ->with('card')
-                        ->get();
-                }
-                break;
+        $inPlay = $user->gameRoom->userAnswerCards()
+            ->where('status', '=', 'in_play')
+            ->with('card')
+            ->get();
 
-            case "picking_winner":
-            case "revealing_winner":
-                    return $user->gameRoom->userAnswerCards()
-                        ->where('status', '=', 'in_play')
-                        ->with('card')
-                        ->get();
-                break;
-        }
+        $inHand = $user->userACards()
+            ->where('status', '=', 'in_hand')
+            ->with('card')
+            ->get();
+
+        return $inHand->merge($inPlay);
     }
 
     public function question(Request $request)
@@ -425,7 +357,7 @@ class GameController extends Controller
 
         $user->gameRoom->user_question_card_id = $request->user_question_card_id;
         $user->gameRoom->answer_count = $uqc->card->pick;
-        $user->gameRoom->progressGame();
+        $user->gameRoom->progress = $user->gameRoom->nextProgress();
         $user->gameRoom->save();
 
         return [];
@@ -515,7 +447,7 @@ class GameController extends Controller
         }
 
         $user->gameRoom->winning_group_id = $request->winning_group_id;
-        $user->gameRoom->progressGame();
+        $user->gameRoom->progress = $user->gameRoom->nextProgress();
         $user->gameRoom->save();
 
         return $user->gameRoom;
@@ -567,17 +499,6 @@ class GameController extends Controller
                     Log::debug(" member_added: {$user->id}");
                     $user->connected = true;
                     $user->save();
-                    if ($user->gameRoom)
-                    {
-                        Log::debug("User connected so, Broadcasting GameUpdated event");
-                        event(new \App\Events\GameUpdated($user->gameRoom));
-
-                        foreach ($user->gameRoom->users as $peer)
-                        {
-                            Log::debug("User ($user->id} connected, Broadcasting user: {$peer->id}");
-                            event(new \App\Events\UserUpdated($peer));
-                        }
-                    }
                     return [];
 
                 case "member_removed":

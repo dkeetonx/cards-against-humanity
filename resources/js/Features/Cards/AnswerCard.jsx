@@ -35,7 +35,7 @@ export default function AnswerCard({ uac, onClick, selectable = true, selected =
                     dispatch(removeBlankCard(blankCard.user_answer_card_id));
                 }
                 setIsDirty(false);
-            }, 1000)
+            }, 500)
         );
 
     }, [customAnswer]);

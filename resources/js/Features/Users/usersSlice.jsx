@@ -13,11 +13,9 @@ function initializeEcho(id, thunkAPI) {
     console.log(`initializing echo App.Models.GameRoom.${id}`);
     window.Echo.private(`App.Models.GameRoom.${id}`)
         .listen('UserLeftGame', (user_data) => {
-            console.log(`UserLeftGame seen: ${user_data}`);
             dispatch(removeUser(user_data.id))
         })
         .listen('UserUpdated', (user_data) => {
-            console.log(`UserUpdated seen: ${user_data}`);
             const gameRoomId = selectGameId(getState());
             if (user_data.game_room_id === gameRoomId) {
                 dispatch(updateUser(user_data));

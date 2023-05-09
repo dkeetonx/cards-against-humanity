@@ -23,13 +23,12 @@ import PlayersList from '../Users/PlayersList';
 import SpectatorsList from '../Users/SpectatorsList';
 import PrestartUsersList from '../Users/PrestartUsersList';
 import {
-    fetchAnswerCards,
-    fetchQuestionCards,
-    selectAllQuestionCards,
+    selectQuestionCards,
     selectAllAnswerCards,
     pickQuestionCard,
 } from '../Cards/cardsSlice';
 import QuestionCard from '../Cards/QuestionCard';
+import PlaceholderCard from '../Cards/PlaceholderCard';
 import PlayerHand from './PlayerHand';
 import AnswerBoard from './AnswerBoard';
 import StatusBoard from './StatusBoard';
@@ -48,7 +47,7 @@ export default function Game() {
     const playingStatus = useSelector(selectPlayingStatus);
     const currentUserReady = useSelector(selectCurrentUserReady);
     const answerCards = useSelector(selectAllAnswerCards);
-    const questionCards = useSelector(selectAllQuestionCards);
+    const questionCards = useSelector(selectQuestionCards);
     const currentQuestioner = useSelector(selectCurrentQuestioner);
     const owner = useSelector(selectOwner);
     const dispatch = useDispatch();
@@ -72,11 +71,6 @@ export default function Game() {
         }
     }, [gameStoreStatus, gameCode, navigate]);
 
-    useEffect(() => {
-        dispatch(fetchQuestionCards()).unwrap();
-        dispatch(fetchAnswerCards()).unwrap();
-    }, [gameProgress, playingStatus, currentQuestionerId, dispatch]);
-
     const [isQuestioner, setIsQuestioner] = useState(false);
     useEffect(() => {
         if (currentQuestionerId === currentUserId) {
@@ -90,7 +84,7 @@ export default function Game() {
     const [answering, setAnswering] = useState(false);
     useEffect(() => {
         if (playingStatus === "playing"
-            && currentUserReady !== true
+            && currentUserReady != true
             && gameProgress === "answering"
             && currentQuestionerId !== currentUserId) {
             setAnswering(true);
@@ -98,7 +92,7 @@ export default function Game() {
         else {
             setAnswering(false);
         }
-    }, [playingStatus, gameProgress, currentQuestionerId])
+    }, [playingStatus, currentUserReady, gameProgress, currentQuestionerId])
 
     const [spectating, setIsSpectating] = useState(false);
     useEffect(() => {
@@ -194,6 +188,11 @@ export default function Game() {
                                     />
 
                             ))}
+                            {questionCards.length < 1 ?
+                                <PlaceholderCard className="invisible" />
+                                :
+                                ""
+                            }
                             <div className="w-20 shrink-0 self-end"></div>
                         </div>
                         {isQuestioner && gameProgress === "choosing_qcard" &&
@@ -249,7 +248,7 @@ export default function Game() {
                                 </p>
                             </div>
                         </div>
-                        {answering && !currentUserReady &&
+                        {answering &&
                             <PlayerHand wrap={wrap} />
                         }
                         {(spectating || isQuestioner || currentUserReady) && gameProgress === "answering" ?

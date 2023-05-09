@@ -28,6 +28,10 @@ import { fetchUsers } from './Features/Users/usersSlice';
 
 import { Provider, useSelector, useDispatch } from 'react-redux'
 import { fetchPacks } from './Features/Cards/packsSlice';
+import {
+    fetchAnswerCards,
+    fetchQuestionCards,
+} from './Features/Cards/cardsSlice';
 
 import Home from './Home';
 import JoinDialog from './Features/CurrentUser/JoinDialog';
@@ -84,8 +88,7 @@ function Layout(props) {
             dispatch(fetchCurrentUser()).unwrap();
         }
         dispatch(fetchPacks()).unwrap();
-    }, [dispatch])
-
+    }, [dispatch]);
 
     useEffect(() => {
         if (userGameId !== null) {
@@ -96,6 +99,8 @@ function Layout(props) {
     useEffect(() => {
         if (gameId) {
             dispatch(fetchUsers(gameId)).unwrap();
+            dispatch(fetchQuestionCards()).unwrap();
+            dispatch(fetchAnswerCards()).unwrap();
         }
     }, [gameId, connected, dispatch]);
 

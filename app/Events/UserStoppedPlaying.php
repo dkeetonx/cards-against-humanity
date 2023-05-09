@@ -9,9 +9,8 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Log;
 
-class UserLeftGame implements ShouldBroadcast
+class UserStoppedPlaying
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -36,11 +35,6 @@ class UserLeftGame implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('App.Models.GameRoom.'.$this->gameRoom->id);
-    }
-
-    public function broadcastWith() : array
-    {
-        return $this->user->attributesToArray();
+        return new PrivateChannel('channel-name');
     }
 }

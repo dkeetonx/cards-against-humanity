@@ -33,4 +33,61 @@ class UserQuestionCard extends Model
     {
         return $this->belongsTo(\App\Models\User::class);
     }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::created(function($uqc)
+        {
+            event(new \App\Events\UserQuestionCardDrawn($uqc));
+            return true;
+        });
+
+        self::updated(function($uqc)
+        {
+            $trashed = false;
+            if ($uqc->wasChanged('status'))
+            {
+                $oldStatus = $uqc->getOriginal()['status'];
+                $uqc->syncOriginalAttribute('status');
+                $uqc->syncChanges();
+
+                switch($uqc->status)
+                {
+                    case 'in_hand':
+                        event(new \App\Events\UserQuestionCardDrawn($uqc));
+                        break;
+                    case 'in_play':
+                        event(new \App\Events\UserQuestionCardPlayed($uqc));
+                        break;
+                    case 'in_trash':
+                        $trashed = true;
+                        break;
+                }
+            }
+            if ($uqc->wasChanged('revealed'))
+            {
+                $uqc->syncOriginalAttribute('revealed');
+                $uqc->syncChanges();
+
+                if ($uqc->revealed)
+                {
+                    event(new \App\Events\UserQuestionCardRevealed($uqc));
+                }
+            }
+
+            event(new \App\Events\UserQuestionCardChanged($uqc));
+            if ($trashed)
+                event(new \App\Events\UserQuestionCardTrashed($uqc));
+    
+            return true;
+        });
+
+        self::deleted(function($uqc)
+        {
+            event(new \App\Events\UserQuestionCardRecycled($uqc));
+            return true;
+        });
+    }
 }

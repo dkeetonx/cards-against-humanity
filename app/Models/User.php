@@ -32,6 +32,7 @@ class User extends Authenticatable
         'points',
         'playing_status',
         'voted',
+        'ready',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+
     protected $dispatchesEvents = [
         'updated' => \App\Events\UserUpdated::class,
     ];
@@ -62,16 +64,28 @@ class User extends Authenticatable
         return $this->belongsTo(GameRoom::class);
     }
 
-    public function userACards() : HasMany
+    public function userACards($game_room_id = null) : HasMany
     {
-        return $this->hasMany(\App\Models\UserAnswerCard::class)
+        if ($game_room_id) {
+            return $this->hasMany(\App\Models\UserAnswerCard::class)
+                ->where('game_room_id', '=', $game_room_id);
+        }
+        else {
+            return $this->hasMany(\App\Models\UserAnswerCard::class)
             ->where('game_room_id', '=', $this->game_room_id);
+        }
     }
 
-    public function userQCards() : HasMany
+    public function userQCards($game_room_id = null) : HasMany
     {
-        return $this->hasMany(\App\Models\UserQuestionCard::class)
-            ->where('game_room_id', '=', $this->game_room_id);
+        if ($game_room_id) {
+            return $this->hasMany(\App\Models\UserQuestionCard::class)
+                ->where('game_room_id', '=', $game_room_id);
+        }
+        else {
+            return $this->hasMany(\App\Models\UserQuestionCard::class)
+                ->where('game_room_id', '=', $this->game_room_id);
+        }
     }
 
     public function qCardsInHand()
@@ -83,47 +97,6 @@ class User extends Authenticatable
 
     {
         return $this->userACards()->where('status', 'in_hand')->count();
-    }
-
-    public function leaveGameRoom($save = false)
-    {
-        $wasCurrentQuestioner = false;
-        $gameRoom = $this->gameRoom;
-        if ($this->gameRoom && $this->gameRoom->current_questioner == $this->id)
-        {
-            $wasCurrenQuestioner = true;
-            $gameRoom = $this->gameRoom;
-        }
-        foreach ($this->userQCards as $uqc)
-        {
-            $uqc->status = "in_trash";
-            $uqc->save();
-        }
-
-        $this->game_room_id = null;
-        $this->turn_index = 0;
-        $this->has_free_redraw = false;
-        $this->points = 0;
-        $this->playing_status = "waiting";
-        $this->ready = false;
-        $this->voted = false;
-
-        if ($save)
-        {
-            $this->save();
-        }
-
-        if ($wasCurrentQuestioner)
-        {
-            $gameRoom->current_questioner = null;
-            $gameRoom->progressGame();
-            $gameRoom->save();
-        }
-        if ($gameRoom)
-        {
-            event(new \App\Events\UserLeftGame($this, $gameRoom->id));
-        }
-        return true;
     }
 
     public function drawQuestionCards($drawCount)
@@ -283,121 +256,111 @@ out:
 
         self::updated(function($user)
         {
-            $original = $user->getOriginal();
-            if ($user->wasChanged('game_room_id') &&
-                array_key_exists('game_room_id', $original) && 
-                $original['game_room_id'])
+            if ($user->wasChanged('game_room_id'))
             {
-                $gameRoom = GameRoom::find($original['game_room_id']);
+                $wasInGameRoom = GameRoom::find($user->getOriginal('game_room_id', null));
 
-                $newGameRoomId = $user->game_room_id;
+                // Set game_room_id back to unchanged
+                $user->syncOriginalAttribute('game_room_id');
+                $user->syncChanges();
 
-                $user->game_room_id = $gameRoom->id;
-
-                $user->dealUserOut();
-
-                if ($gameRoom->current_questioner == $user->id)
+                if ($wasInGameRoom)
                 {
-                    $gameRoom->current_questioner = null;
-                    $gameRoom->skipGame();
-                    $gameRoom->save();
+                    event(new \App\Events\UserLeftGame($user, $wasInGameRoom));
+                    event(new \App\Events\UserStoppedPlaying($user, $wasInGameRoom));
                 }
-                $user->game_room_id = $newGameRoomId;
-                $user->points = 0;
 
-                $user->load('gameRoom');
-                if ($user->gameRoom && $user->gameRoom->lastTurnPlayer())
+                if ($user->gameRoom)
                 {
-                    Log::debug("player updated to {$user->playing_status}, setting points and turn");
-                    $user->turn_index = $user->gameRoom->lastTurnPlayer()->turn_index + 1;
+                    event(new \App\Events\UserJoinedGame($user));
+                    if (!$user->wasChanged('playing_status'))
+                    {
+                        switch($user->playing_status) {
+                            case "waiting":
+                                event(new \App\Events\UserBeganWaiting($user));
+                                break;
+                            case "spectating":
+                                event(new \App\Events\UserBeganSpectating($user));
+                                break;
+                            case "playing":
+                                event(new \App\Events\UserBeganPlaying($user));
+                                break;
+                        }
+                    }
                 }
-                $user->saveQuietly();
             }
 
             if ($user->gameRoom)
             {
-                if ($user->voted && $user->gameRoom !== "prestart")
+                if ($user->wasChanged('voted'))
                 {
-                    Log::debug("user->gameRoom->countVotes()");
-                    $user->gameRoom->countVotes();
-                    $user->gameRoom->save();
+                    // Set voted back to unchanged
+                    $user->syncOriginalAttribute('voted');
+                    $user->syncChanges();
+
+                    if ($user->voted)
+                    {
+                        event(new \App\Events\UserVoted($user));
+                    }
+                }
+
+                if ($user->wasChanged('ready'))
+                {
+                    // Set ready back to unchanged
+                    $user->syncOriginalAttribute('ready');
+                    $user->syncChanges();
+
+                    if ($user->ready)
+                    {
+                        event(new \App\Events\UserBecameReady($user));
+                    }
+                    else {
+                        event(new \App\Events\UserBecameUnready($user));
+                    }
                 }
 
                 if ($user->wasChanged('connected'))
                 {
-                    if (!$user->connected && $user->gameRoom)
+                    // Set voted back to unchanged
+                    $user->syncOriginalAttribute('connected');
+                    $user->syncChanges();
+
+                    if ($user->connected)
                     {
-                        Log::debug("user disconnected, going to spectator");
-                        if ($user->playing_status == "playing")
-                        {
-                            $user->playing_status = 'spectating';
-                            $user->saveQuietly();
-                        }
+                        event(new \App\Events\UserConnected($user));
+                    }
+                    else {
+                        event(new \App\Events\UserDisconnected($user));
                     }
                 }
         
                 if ($user->wasChanged('playing_status'))
                 {
-                    Log::debug("playing status changed");
-                    if ($user->playing_status === "playing")
-                    {
-                        Log::debug("player updated to {$user->playing_status}, setting points and turn");
-                        $user->load('gameRoom');
-                        $user->points = 0;
-                        $user->turn_index = $user->gameRoom->lastTurnPlayer()->turn_index + 1;
+                    $wasPlayingStatus = $user->getOriginal('playing_status');
 
-                        $user->dealUserIn();
-                        if ($user->gameRoom->current_questioner === $user->id)
-                        {
-                            $user->ready = $user->gameRoom->progressQuestionerReadyState();
-                        }
-                        else {
-                            $user->ready = $user->gameRoom->progressPlayerReadyState();
-                        }
-                        $user->saveQuietly();
+                    // Set playing_status back to unchanged
+                    $user->syncOriginalAttribute('playing_status');
+                    $user->syncChanges();
+
+                    switch($user->playing_status) {
+                        case "waiting":
+                            event(new \App\Events\UserBeganWaiting($user));
+                            break;
+                        case "spectating":
+                            event(new \App\Events\UserBeganSpectating($user));
+                            break;
+                        case "playing":
+                            event(new \App\Events\UserBeganPlaying($user));
+                            break;
                     }
-                    else {
-                        if ($user->gameRoom->current_questioner == $user->id)
-                        {
-                            $user->gameRoom->current_questioner = null;
-                            $user->gameRoom->skipGame();
-                            $user->gameRoom->save();
-                        }
-                        else {
-                            $user->gameRoom->countReady();
-                            $user->gameRoom->save();
-                        }
+
+                    if ($wasPlayingStatus == "playing")
+                    {
+                        event(new \App\Events\UserStoppedPlaying($user, $user->gameRoom));
                     }
                 }
             }
-            else {
-                $user->turn_index = 0;
-                $user->voted = false;
-                $user->saveQuietly();
-            }
 
-
-
-            if ($user->wasChanged('playing_status'))
-            {
-                if ($user->playingStatus == "spectating"
-                    && $user->gameRoom
-                    && $user->gameRoom->current_questioner === $user->id)
-                {
-                    Log::debug("questioner became spectator");
-                    foreach ($this->userQCards as $uqc)
-                    {
-                        $uqc->status = "in_trash";
-                        $uqc->save();
-                    }
-                    $this->current_questioner = null;
-                    $this->gameRoom->progressGame();
-                    $this->save();
-                }
-            }
-
-
-            Log::debug("user updated");
             return true;
         });
     }
