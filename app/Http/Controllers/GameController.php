@@ -213,7 +213,6 @@ class GameController extends Controller
             else {
                 $targetUser->playing_status = "spectating";
             }
-            Log::debug($targetUser->toArray());
             $targetUser->save();
         }
         return [];

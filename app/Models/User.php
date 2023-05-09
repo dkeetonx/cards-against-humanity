@@ -322,8 +322,6 @@ out:
                 $user->turn_index = 0;
                 $user->voted = false;
             }
-
-            Log::debug($user->playing_status);
             return true;
         });
 
@@ -363,7 +361,6 @@ out:
                 }
             }
             Log::debug("user updated");
-            Log::debug($user->playing_status);
             return true;
         });
     }

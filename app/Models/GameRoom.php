@@ -184,7 +184,6 @@ class GameRoom extends Model
                 break;
             }
         }
-        Log::Debug("progress = ".($progress ? "true" : "false"));
         if ($progress)
         {
             $this->progressGame();
@@ -226,7 +225,6 @@ class GameRoom extends Model
     {
         foreach ($this->players as $player)
         {
-            Log::debug($player->points);
             $player->touch();
             $player->save();
         }
@@ -550,7 +548,6 @@ class GameRoom extends Model
                 {
                     Log::debug("giving points to {$player->name}");
                     $player->points = $player->points + 1;
-                    Log::debug("points");
                 }
             }
         }
