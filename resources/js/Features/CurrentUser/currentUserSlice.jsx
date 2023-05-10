@@ -110,13 +110,15 @@ const initialState = {
     storeStatus: 'prestart',
     fetchStatus: 'idle',
     errors: {},
+    animateTimers: false,
 
     id: null,
     name: "",
     game_room_id: null,
     status: "nothing",
-
+    connected: false,
 }
+
 const currentUserSlice = createSlice({
     name: 'currentUser',
     initialState,
@@ -136,6 +138,12 @@ const currentUserSlice = createSlice({
                 fetchStatus: state.fetchStatus,
                 errors: state.errors,
             }
+        },
+        setAnimateTimers(state, action) {
+            state.animateTimers = action.payload;
+        },
+        setConnected(state, action) {
+            state.connected = action.payload;
         }
     },
     extraReducers(builder) {
@@ -176,7 +184,11 @@ const currentUserSlice = createSlice({
 
 export default currentUserSlice.reducer;
 
-export const { setCurrentUser } = currentUserSlice.actions;
+export const {
+    setCurrentUser,
+    setAnimateTimers,
+    setConnected,
+ } = currentUserSlice.actions;
 
 export const selectCurrentUserFetchStatus = (state) => state.currentUser.fetchStatus;
 export const selectCurrentUserErrors = (state) => state.currentUser.errors;
@@ -191,3 +203,5 @@ export const selectPlayingStatus = (state) => state.currentUser.playing_status;
 export const selectCurrentUserReady = (state) => state.currentUser.ready;
 export const selectCurrentUserVoted = (state) => state.currentUser.voted;
 export const selectHasFreeRedraw = (state) => state.currentUser.has_free_redraw;
+export const selectConnected = (state) => state.currentUser.connected;
+export const selectAnimateTimers = (state) => state.currentUser.animateTimers;

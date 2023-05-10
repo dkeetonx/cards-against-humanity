@@ -13,7 +13,7 @@
         </style>
     </head>
     <body class="h-screen flex flex-col overflow-clip">
-        <div id="app" class="grow-0 flex flex-col bg-base-300 h-full"></div>
+        <div id="app" class="grow-0 flex flex-col bg-base-100 h-full"></div>
         @viteReactRefresh
         @vite('resources/js/app.jsx')
     </body>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
     selectGameDeadline,
@@ -13,6 +13,7 @@ import {
     selectPlayingStatus,
     selectCurrentUserReady,
     selectCurrentUserVoted,
+    selectAnimateTimers,
 } from '../CurrentUser/currentUserSlice';
 
 import Share from './Share';
@@ -38,6 +39,7 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
     const currentUserReady = useSelector(selectCurrentUserReady);
     const currentUserVoted = useSelector(selectCurrentUserVoted);
     const isOwner = useSelector(selectGameOwnerId) === currentUserId;
+    const animate = useSelector(selectAnimateTimers);
     const dispatch = useDispatch();
 
 
@@ -62,23 +64,61 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         }
     }, [gameProgress, playingStatus, currentUserReady, currentUserVoted, elapsed]);
 
-    const [days, setDays] = useState(0);
-    const [hours, setHours] = useState(0);
-    const [minutes, setMinutes] = useState(0);
-    const [seconds, setSeconds] = useState(0);
+    const daysElRef = useRef(null);
+    const hoursElRef = useRef(null);
+    const minutesElRef = useRef(null);
+    const secondsElRef = useRef(null);
 
     useEffect(() => {
         const getTime = () => {
             const timeRemaining = deadline - Date.now();
 
             if (timeRemaining > 0) {
-                setElapsed(false);
-                setDays(Math.floor(timeRemaining / (1000 * 60 * 60 * 24)));
-                setHours(Math.floor((timeRemaining / (1000 * 60 * 60)) % 24));
-                setMinutes(Math.floor((timeRemaining / 1000 / 60) % 60));
-                setSeconds(Math.floor((timeRemaining / 1000) % 60));
+                if (elapsed) {
+                    setElapsed(false);
+                }
+
+                if (daysElRef.current) {
+                    const v = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+
+                    if (animate) {
+                        daysElRef.current.style.setProperty('--value', v);
+                    }
+                    else {
+                        daysElRef.current.innerText = zeroPad(v, 2);
+                    }
+                }
+                if (hoursElRef.current) {
+                    const v = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+
+                    if (animate) {
+                    hoursElRef.current.style.setProperty('--value', v);
+                    }
+                    else {
+                        hoursElRef.current.innerText = zeroPad(v, 2);
+                    }
+                }
+                if (minutesElRef.current) {
+                    const v = Math.floor((timeRemaining / 1000 / 60) % 60);
+
+                    if (animate ) {
+                    minutesElRef.current.style.setProperty('--value', v);
+                    }
+                    else {
+                        minutesElRef.current.innerText = zeroPad(v, 2);
+                    }
+                }
+                if (secondsElRef.current) {
+                    const v = Math.floor((timeRemaining / 1000) % 60);
+                    if (animate) {
+                    secondsElRef.current.style.setProperty('--value', v);
+                    }
+                    else {
+                        secondsElRef.current.innerText = zeroPad(v, 2);
+                    }
+                }
             }
-            else {
+            else if (!elapsed) {
                 onDeadline && onDeadline();
                 setElapsed(true);
             }
@@ -88,7 +128,7 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         const interval = setInterval(getTime, 1000);
 
         return () => clearInterval(interval);
-    }, [deadline, playingStatus, currentUserReady]);
+    }, [deadline, playingStatus, currentUserReady, animate]);
 
     const [btnData, setBtnData] = useState(SKIP);
     useEffect(() => {
@@ -149,16 +189,11 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         <div className="flex flex-row bg-base-200 rounded-btn">
             <Share className={`flex items-center justify-center rounded-r-none ${groupLook}`} />
             <div className={`flex items-center justify-center border-x-0 rounded-none ${groupLook}`}>
-                <p className="font-mono text-md">
-                    <span>{zeroPad(minutes, 2)}</span>:
-                    <span>{zeroPad(seconds, 2)}</span>
-                </p>
-                {/*
-                <span className="countdown font-mono text-xl">
-                    <span style={{ "--value": minutes }}></span>:
-                    <span style={{ "--value": seconds }}></span>
+                <span className={`${animate ? "countdown" :""} font-mono text-xl`}>
+                    <span ref={minutesElRef}>00</span>:
+                    <span ref={secondsElRef}>00</span>
                 </span>
-                */}
+
             </div>
             <button
                 className={`btn btn-primary btn-md rounded-l-none normal-case ${groupLook} ${!btnEnabled ? "btn-disabled" : "animate-none"} ${processing ? "loading" : ""}`}

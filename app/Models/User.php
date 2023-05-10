@@ -338,8 +338,12 @@ out:
             {
                 if (!$user->connected && $user->gameRoom)
                 {
-                    Log::debug("user disconnected, leaving game room");
-                    $user->leaveGameRoom(true);
+                    Log::debug("user disconnected, going to spectator");
+                    if ($user->playing_status == "playing")
+                    {
+                        $user->playing_status = 'spectating';
+                        $user->save();
+                    }
                 }
             }
 

@@ -8,7 +8,11 @@ import { selectGameId, selectGameCode, createGame } from './gameSlice'
 import { selectCurrentUserName } from '../CurrentUser/currentUserSlice'
 import { selectAllPacks } from '../Cards/packsSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faInfinity } from '@fortawesome/free-solid-svg-icons';
+import {
+    faInfinity,
+    faAnglesDown,
+    faAnglesUp,
+} from '@fortawesome/free-solid-svg-icons';
 
 export default function Create(props) {
     const gameId = useSelector(selectGameId);
@@ -33,10 +37,10 @@ export default function Create(props) {
         max_player_count: 16,
         winning_score: 5,
         has_waiting_room: false,
-        two_question_cards: true,
+        two_question_cards: false,
         allow_hand_redraw: true,
         question_card_timer: 2,
-        answer_card_timer: 8,
+        answer_card_timer: 5,
     });
 
     const [formErrors, setFormErrors] = useState(
@@ -49,11 +53,24 @@ export default function Create(props) {
         setPacks(allPacks.map((pack) => ({ ...pack, enabled: pack.official })));
     }, [allPacks, useState])
 
+    const [collapsed, setCollapsed] = useState(true);
+    const [filteredPacks, setFilteredPacks] = useState([]);
+    useEffect(() => {
+        if (collapsed && packs.length > 0) {
+            setFilteredPacks([packs[0]]);
+        }
+        else {
+            setFilteredPacks(packs);
+        }
+    }, [packs, collapsed]);
+
     function togglePack(id) {
         setPacks(packs.map((pack) => pack.id == id ? { ...pack, enabled: !pack.enabled } : pack));
     }
 
     function handleChange(event) {
+        event.preventDefault();
+
         if (event.target.type === "checkbox") {
             setFormData({
                 ...formData,
@@ -107,10 +124,10 @@ export default function Create(props) {
     }
 
     return (
-        <div className="flex flex-grow flex-col items-center h-full overflow-auto">
+        <div className="flex flex-grow flex-col items-center h-full overflow-auto pt-4 sm:pt-8">
             <form onSubmit={handleSubmit}
                 className="flex grow flex-col items-start space-y-6 w-64">
-                <h2 className="text-3xl font-bold">Create a Game</h2>
+                <h2 className="text-2xl font-bold">Create a Game</h2>
                 <TextInput id="name" name="name" value={nameBox} label="Your Nickname"
                     className="" maxLength="32"
                     tooltipText={nameError}
@@ -198,10 +215,10 @@ export default function Create(props) {
                         Select Packs
                     </p>
                     <div className="w-full flex flex-col divide-y px-1 pt-2">
-                        {packs.map((pack) => (
+                        {filteredPacks.map((pack) => (
                             <label
                                 key={pack.id}
-                                className={"w-full p-2 cursor-pointer "}
+                                className={`w-full p-2 cursor-pointer`}
                                 htmlFor={`pack[${pack.id}]`}
                             >
                                 <p className="">{pack.name}</p>
@@ -210,7 +227,7 @@ export default function Create(props) {
                                         type="checkbox"
                                         id={`pack[${pack.id}]`}
                                         name={`pack[${pack.id}]`}
-                                        className={`toggle toggle-primary ${props.inputExtraClasses}`}
+                                        className="toggle toggle-primary"
                                         checked={pack.enabled}
                                         onChange={() => togglePack(pack.id)}
                                     />
@@ -218,11 +235,39 @@ export default function Create(props) {
                                 </div>
                             </label>
                         ))}
+                        <div>
+                            {collapsed ?
+                                <label className="h-8 w-full card"></label>
+                                :
+                                <label className="btn bg-base-100 border-none btn-sm rounded-t-none w-full text-base-content card"
+                                    onClick={() => setCollapsed(!collapsed)}
+                                >
+                                    <FontAwesomeIcon icon={faAnglesUp} />
+                                </label>
+                            }
+                        </div>
                     </div>
+                    {collapsed ?
+                        <div className="absolute w-full h-full top-0 left-0 flex flex-col">
+                            {collapsed ?
+                                <div className="bg-gradient-to-t from-base-100 flex-grow">
+
+                                </div>
+                                :
+                                ""
+                            }
+                            <label className="btn bg-base-100 border-none btn-sm rounded-t-none w-full text-base-content card"
+                                onClick={() => setCollapsed(!collapsed)}
+                            >
+                                <FontAwesomeIcon icon={faAnglesDown} />
+                            </label>
+                        </div>
+                        : ""
+                    }
                 </div>
                 <div className="card-actions justify-end">
                     <button type="submit" name="create"
-                        className={`btn btn-primary w-20 ${processing ? "loading":""}`} >
+                        className={`btn btn-primary w-20 ${processing ? "loading" : ""}`} >
                         {processing ? "" : "Create"}
                     </button>
                 </div>

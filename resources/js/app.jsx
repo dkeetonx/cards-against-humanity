@@ -16,6 +16,8 @@ import {
     fetchCurrentUser,
     selectCurrentUserCanFetch,
     selectCurrentUserGameId,
+    selectConnected,
+    setConnected,
 } from './Features/CurrentUser/currentUserSlice';
 import {
     fetchGame,
@@ -71,7 +73,8 @@ const router = createBrowserRouter([
 
 function Layout(props) {
     const userGameId = useSelector(selectCurrentUserGameId);
-    const currentUserCanFetch = useSelector(selectCurrentUserCanFetch)
+    const currentUserCanFetch = useSelector(selectCurrentUserCanFetch);
+    const connected = useSelector(selectConnected);
     const gameId = useSelector(selectGameId);
     const dispatch = useDispatch();
 
@@ -87,13 +90,25 @@ function Layout(props) {
         if (userGameId !== null) {
             dispatch(fetchGame()).unwrap();
         }
-    }, [userGameId, dispatch]);
+    }, [userGameId, connected, dispatch]);
 
     useEffect(() => {
         if (gameId) {
             dispatch(fetchUsers(gameId)).unwrap();
         }
-    }, [gameId, dispatch]);
+    }, [gameId, connected, dispatch]);
+
+    useEffect(() => {
+        console.log("hooking pusher connection");
+        window.Echo.connector.pusher.connection.bind('unavailable', () => {
+            console.log("unavailable: ")
+            dispatch(setConnected(false))
+        });
+        window.Echo.connector.pusher.connection.bind('disconnected', () => {
+            alert('disconnected: ');
+            dispatch(setConnected(false))
+        });
+    }, []);
 
     return (
         <>

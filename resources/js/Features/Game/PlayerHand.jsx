@@ -12,6 +12,7 @@ import {
     pickAnswerCards,
 } from '../Cards/cardsSlice';
 import AnswerCard from '../Cards/AnswerCard';
+import PlaceholderCard from '../Cards/PlaceholderCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { setShowRedrawModal } from '../Overlays/overlaysSlice';
@@ -87,7 +88,7 @@ export default function PlayerHand({ wrap }) {
                 </button>
                 <div className="tooltip" data-tip="Redraw Hand">
                     <button
-                        className={"btn btn-square btn-sm " + (hasFreeRedraw ? "": "btn-disabled")}
+                        className={"btn btn-square btn-sm " + (hasFreeRedraw ? "" : "btn-disabled")}
                         onClick={handleRedrawHand}
                     >
                         <FontAwesomeIcon icon={faStar} />
@@ -113,6 +114,8 @@ export default function PlayerHand({ wrap }) {
                         onClick={() => handleAnswerSelect(uac.id)}
                     />
                 ))}
+                <PlaceholderCard className="invisible" />
+                <PlaceholderCard className="invisible" />
             </div>
         </>
     )

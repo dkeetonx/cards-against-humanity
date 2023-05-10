@@ -231,7 +231,7 @@ export default function Game() {
                                     {gameProgress === "picking_winner" &&
                                         (isQuestioner ?
                                             (answerCards.filter(c => !c.revealed).length > 0 ?
-                                                "Click the cards to reveal them."
+                                                "Tap to reveal the cards."
                                                 :
                                                 "Pick the winner."
                                             )

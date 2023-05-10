@@ -3,9 +3,9 @@ export default function AnswerCard({ onClick, text, selectable = true, selected 
         <div className="relative">
         <label
             className={selected ?
-                `card shadow border border-black bg-white outline outline-accent outline-4 select-none text-black text-sm shrink-0 w-36 h-52 p-2 m-1 overflow-y-auto ${selectable?"cursor-pointer":""}`
+                `card shadow border border-black bg-white outline outline-accent outline-4 select-none text-black text-sm shrink-0 w-40 h-52 p-2 m-1 overflow-y-auto ${selectable?"cursor-pointer":""}`
                 :
-                `card shadow border border-black bg-white text-black select-none text-sm shrink-0 w-36 h-52 p-2 m-1 overflow-y-auto ${selectable?"cursor-pointer":""}`
+                `card shadow border border-black bg-white text-black select-none text-sm shrink-0 w-40 h-52 p-2 m-1 overflow-y-auto ${selectable?"cursor-pointer":""}`
             }
             onClick={() => onClick && onClick()}
         >
