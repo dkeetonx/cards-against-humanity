@@ -113,7 +113,7 @@ function Layout(props) {
     return (
         <>
             <NavBar />
-            <div className="relative container mx-auto pt-16 flex flex-col bg-base-100 h-full overflow-clip">
+            <div className="relative container mx-auto pt-16 flex flex-col bg-base-100 min-h-full">
                 <Outlet />
             </div>
             <Snackbar />

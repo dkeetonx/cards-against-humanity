@@ -28,8 +28,8 @@ module.exports = {
   daisyui: {
     styled: true,
     themes: [
-      "lofi",
       "light",
+      "lofi",
       "dark",
       "cupcake",
       "bumblebee",
