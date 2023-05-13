@@ -15,6 +15,7 @@ class UserAnswerCard extends Model
     protected $fillable = [
         'game_room_id',
         'answer_card_id',
+        'pack_id',
         'user_id',
         'status'
     ];

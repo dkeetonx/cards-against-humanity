@@ -11,6 +11,8 @@ use App\Models\User;
 use App\Models\Pack;
 use App\Models\UserQuestionCard;
 use App\Models\UserAnswerCard;
+use App\Models\AnswerCard;
+
 use Log;
 
 class GameController extends Controller
@@ -77,6 +79,7 @@ class GameController extends Controller
         
         $gr = GameRoom::where('room_code', $request->room_code)->first();
 
+
         if ($user->game_room_id === $gr->id)
         {
             return $user;
@@ -141,6 +144,7 @@ class GameController extends Controller
             "question_card_timer" => 'integer|between:1,32',
             "answer_card_timer" => 'integer|between:1,32',
             "winning_score" => 'integer',
+            "blank_card_rate" => 'integer',
         ]);
         // Do some $request->packs validation here. like minimum card counts
 
@@ -430,17 +434,40 @@ class GameController extends Controller
     public function answer(Request $request)
     {
         $user = Auth::user();
+        $request->validate([
+            'blanks' => 'array',
+            'answers' => 'required|array',
+        ]);
 
         if (!$user || !$user->gameRoom)
         {
             return [];
         }
+
+        $customAnswerCards = [];
+        if ($request->blanks)
+        {
+            foreach ($request->blanks as $blank)
+            {
+                Log::debug("custom blank card: {$blank['text']}");
+                $customAnswerCards[$blank['user_answer_card_id']] = $blank;
+            }
+        }
+
         $uacs = [];
-        foreach ($request->all() as $id => $order)
+        foreach ($request->answers as $id => $order)
         {
             $uac = UserAnswerCard::find($id);
+
             if ($uac->user_id === $user->id)
             {
+                if (!$uac->card_id && array_key_exists($uac->id, $customAnswerCards))
+                {
+                    $newCard = AnswerCard::create($customAnswerCards[$uac->id]);
+                    $newCard->save();
+                    $uac->answer_card_id = $newCard->id;
+                }
+
                 $uac->order = $order;
                 $uac->status = "in_play";
                 $uac->revealed = false;

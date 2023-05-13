@@ -10,6 +10,7 @@ import {
 import {
     selectAllAnswerCards,
     pickAnswerCards,
+    selectAllBlankCards,
 } from '../Cards/cardsSlice';
 import AnswerCard from '../Cards/AnswerCard';
 import PlaceholderCard from '../Cards/PlaceholderCard';
@@ -22,6 +23,7 @@ export default function PlayerHand({ wrap }) {
     const hasFreeRedraw = useSelector(selectHasFreeRedraw);
     const answerCards = useSelector(selectAllAnswerCards);
     const answerCount = useSelector(selectAnswerCount);
+    const blanks = useSelector(selectAllBlankCards);
     const dispatch = useDispatch();
 
     const [picks, setPicks] = useState(0);
@@ -63,7 +65,7 @@ export default function PlayerHand({ wrap }) {
 
         setProcessing(true);
         try {
-            const response = await dispatch(pickAnswerCards(answers)).unwrap();
+            const response = await dispatch(pickAnswerCards({ blanks, answers })).unwrap();
         }
         catch (error) {
 
@@ -106,7 +108,7 @@ export default function PlayerHand({ wrap }) {
                 {answerCards.filter(uac => uac.user_id == currentUserId && uac.status == "in_hand").map(uac => (
                     <AnswerCard
                         key={uac.id}
-                        text={uac.card && uac.card.text}
+                        uac={uac}
                         selectable={true}
                         selected={uac.id in answers}
                         pick={uac.id in answers && answers[uac.id]}

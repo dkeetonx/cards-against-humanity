@@ -88,12 +88,12 @@ class User extends Authenticatable
     public function leaveGameRoom($save = false)
     {
         $wasCurrentQuestioner = false;
+        $gameRoom = $this->gameRoom;
         if ($this->gameRoom && $this->gameRoom->current_questioner == $this->id)
         {
             $wasCurrenQuestioner = true;
             $gameRoom = $this->gameRoom;
         }
-
         foreach ($this->userQCards as $uqc)
         {
             $uqc->status = "in_trash";
@@ -107,6 +107,7 @@ class User extends Authenticatable
         $this->playing_status = "waiting";
         $this->ready = false;
         $this->voted = false;
+
         if ($save)
         {
             $this->save();
@@ -118,7 +119,10 @@ class User extends Authenticatable
             $gameRoom->progressGame();
             $gameRoom->save();
         }
-        event(new \App\Events\UserLeftGame($this));
+        if ($gameRoom)
+        {
+            event(new \App\Events\UserLeftGame($this, $gameRoom->id));
+        }
         return true;
     }
 
@@ -179,37 +183,49 @@ out:
         {
             $usedCards = $this->gameRoom->userAnswerCards;
 
-            $maxLoops = 2000;
+            Log::debug("drawing cards. blank_card_rate = {$this->gameRoom->blank_card_rate}");
+            $drawBlankCard = rand(1, floor(100/$this->gameRoom->blank_card_rate)) == 1;
+
             $drawnCard = null;
-            do {
-                $count = 0;
-                $index = rand(1, $deckCardCount);
 
-                foreach ($this->gameRoom->gameDeckPacks as $deck)
-                {
-                    if ($deck->pack->a_count >= $index)
+            if ($drawBlankCard)
+            {
+                Log::debug("drawBlankCard triggered");
+                $drawnCard = new AnswerCard;
+                $drawnCard->id = null;
+            }
+            else {
+                $maxLoops = 2000;
+                do {
+                    $count = 0;
+                    $index = rand(1, $deckCardCount);
+
+                    foreach ($this->gameRoom->gameDeckPacks as $deck)
                     {
-                        $drawnCard = $deck->pack->answerCards[$index - 1];
-                        break;
+                        if ($deck->pack->a_count >= $index)
+                        {
+                            $drawnCard = $deck->pack->answerCards[$index - 1];
+                            break;
+                        }
+                        $index = $index - $deck->pack->a_count;
                     }
-                    $index = $index - $deck->pack->a_count;
-                }
 
 
-                $maxLoops--;
-                if ($maxLoops < 1)
-                {
-                    goto out;
-                }
-            } while (!$drawnCard ||
-                     $usedCards->filter(fn($c) => $c->answer_card_id === $drawnCard->id)->count() > 0);
+                    $maxLoops--;
+                    if ($maxLoops < 1)
+                    {
+                        goto out;
+                    }
+                } while (!$drawnCard ||
+                         $usedCards->filter(fn($c) => $c->answer_card_id === $drawnCard->id)->count() > 0);
+            }
 
-            $uqc = new \App\Models\UserAnswerCard;
-            $uqc->game_room_id = $this->gameRoom->id;
-            $uqc->answer_card_id = $drawnCard->id;
-            $uqc->user_id = $this->id;
-            $uqc->status = "in_hand";
-            $uqc->save();
+            $uac = new \App\Models\UserAnswerCard;
+            $uac->game_room_id = $this->gameRoom->id;
+            $uac->answer_card_id = $drawnCard->id;
+            $uac->user_id = $this->id;
+            $uac->status = "in_hand";
+            $uac->save();
             //$this->refresh();
 
             $drawnCount++;
@@ -277,6 +293,12 @@ out:
                     $user->gameRoom->skipGame();
                     $user->gameRoom->save();
                 }
+                if ($user->gameRoom->owner_id == $user->id)
+                {
+                    $user->gameRoom->owner_id = null;
+                    $user->gameRoom->save();
+                }
+
                 $user->game_room_id = $newGameRoomId;
                 $user->points = 0;
 

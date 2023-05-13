@@ -32,6 +32,7 @@ class GameRoom extends Model
         'winner_id',
         'answer_count',
         'winning_group_id',
+        'blank_card_rate',
     ];
     protected $casts = [
         'deadline_at' => 'datetime',
@@ -221,6 +222,23 @@ class GameRoom extends Model
         }
     }
 
+    public function setPlayersPowerups($save = false)
+    {
+        foreach ($this->players as $player)
+        {
+            if ($this->allow_hand_redraw)
+            {
+                $player->has_free_redraw = true;
+            }
+            else {
+                $player->has_free_redraw = false;
+            }
+
+            if ($save)
+                $player->save();
+        }
+    }
+
     public function saveAllUsers()
     {
         foreach ($this->players as $player)
@@ -405,6 +423,7 @@ class GameRoom extends Model
         $this->trashCardsInPlay();
         $this->setPlayersNotVoted();
         $this->setPlayersDefaultReady();
+        $this->setPlayersPowerups();
         $this->user_question_card_id = null;
         $this->deadline_at = Carbon::now()->addMinutes(10);
 

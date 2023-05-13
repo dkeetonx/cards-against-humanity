@@ -15,15 +15,17 @@ class UserLeftGame implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     private $user;
+    private $gameRoomId;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($user)
+    public function __construct($user, $gameRoomId)
     {
         //
         $this->user = $user;
+        $this->gameRoomId = $gameRoomId;
     }
 
     /**
@@ -33,7 +35,7 @@ class UserLeftGame implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('App.Models.GameRoom.'.$this->user->game_room_id);
+        return new PrivateChannel('App.Models.GameRoom.'.$this->gameRoomId);
     }
 
     public function broadcastWith() : array

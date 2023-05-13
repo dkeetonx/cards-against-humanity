@@ -1,4 +1,5 @@
 import {
+    nanoid,
     createSlice,
     createAsyncThunk,
     createEntityAdapter,
@@ -24,7 +25,7 @@ export const fetchAnswerCards = createAsyncThunk(
 
 export const pickQuestionCard = createAsyncThunk(
     'cards/pickQuestionCard',
-    async(uqc, thunkAPI) => {
+    async (uqc, thunkAPI) => {
         const { data: card } = await window.axios.post('/api/question', uqc);
 
         return card;
@@ -33,7 +34,7 @@ export const pickQuestionCard = createAsyncThunk(
 
 export const pickAnswerCards = createAsyncThunk(
     'cards/pickAnswerCards',
-    async(uacs, thunkAPI) => {
+    async (uacs, thunkAPI) => {
         const { data: cards } = await window.axios.post('/api/answer', uacs);
 
         return cards;
@@ -42,7 +43,7 @@ export const pickAnswerCards = createAsyncThunk(
 
 export const revealAnswerCard = createAsyncThunk(
     'cards/revealAnswerCard',
-    async(uac, thunkAPI) => {
+    async (uac, thunkAPI) => {
         const { data: card } = await window.axios.post('/api/reveal', {
             user_answer_card_id: uac.id
         });
@@ -70,12 +71,24 @@ export const redrawHand = createAsyncThunk(
 )
 
 const cardsAdapter = createEntityAdapter({
-    sortComparer: (a, b) => a.drawn - b.draw,
+    sortComparer: (a, b) => {
+        console.log("sorting cards");
+        const userOrder = (a.user_id - b.user_id);
+        if (userOrder == 0)
+            return (a.order - b.order);
+        return userOrder;
+    },
+});
+
+const blankCardsAdapter = createEntityAdapter({
+    sortComparer: (a,b) => a.user_answer_card_id - b.user_answer_card_id,
+    selectId: entity => entity.user_answer_card_id,
 });
 
 const initialState = {
     questionCards: cardsAdapter.getInitialState(),
     answerCards: cardsAdapter.getInitialState(),
+    blanks: blankCardsAdapter.getInitialState(),
 };
 
 const cardsSlice = createSlice({
@@ -106,6 +119,12 @@ const cardsSlice = createSlice({
         setAnswerCards(state, action) {
             cardsAdapter.setAll(state.answerCards, action.payload);
         },
+        upsertBlankCard(state, action) {
+            blankCardsAdapter.upsertOne(state.blanks, action.payload);
+        },
+        removeBlankCard(state, action) {
+            blankCardsAdapter.removeOne(state.blanks, action.payload);
+        }
     },
     extraReducers(builder) {
         builder
@@ -129,7 +148,11 @@ const cardsSlice = createSlice({
 
 export default cardsSlice.reducer;
 
-export const { setAnswerCard } = cardsSlice.actions;
+export const {
+    setAnswerCard,
+    upsertBlankCard,
+    removeBlankCard
+} = cardsSlice.actions;
 
 export const {
     selectById: selectAnswerCardById,
@@ -140,3 +163,8 @@ export const {
     selectById: selectQuestionCardById,
     selectAll: selectAllQuestionCards,
 } = cardsAdapter.getSelectors(state => state.cards.questionCards);
+
+export const {
+    selectById: selectBlankById,
+    selectAll: selectAllBlankCards,
+} = blankCardsAdapter.getSelectors(state => state.cards.blanks);

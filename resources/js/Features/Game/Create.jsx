@@ -41,6 +41,7 @@ export default function Create(props) {
         allow_hand_redraw: true,
         question_card_timer: 2,
         answer_card_timer: 5,
+        blank_card_rate: 8,
     });
 
     const [formErrors, setFormErrors] = useState(
@@ -206,6 +207,17 @@ export default function Create(props) {
                         tooltipText={formErrors.answer_card_timer}
                         tooltipExtraClasses="tooltip-top tooltip-warning"
                         inputExtraClasses={(formErrors.answer_card_timer && "input-warning border-2")}
+                        onChange={handleChange}
+                    />
+
+                    <Range
+                        min="1" max="15" value={formData.blank_card_rate}
+                        label="Blank Card Rate" name="blank_card_rate"
+                        valueLabelExtraClasses="w-24 px-2"
+                        formatValue={(v) => `${v}%`}
+                        tooltipText={formErrors.blank_card_rate}
+                        tooltipExtraClasses="tooltip-top tooltip-warning"
+                        inputExtraClasses={(formErrors.blank_card_rate && "input-warning border-2")}
                         onChange={handleChange}
                     />
                 </div>

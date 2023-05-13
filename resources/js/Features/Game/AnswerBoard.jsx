@@ -86,9 +86,9 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                             uac.revealed ?
                                 <AnswerCard
                                     key={uac.id}
+                                    uac={uac}
                                     selectable={true}
                                     selected={winnerGroup == uac.user_id}
-                                    text={uac.card && uac.card.text}
                                     pick={uac.order}
                                     of={answerCount}
                                     onClick={() => handleSetWinnerGroup(user_id)}
