@@ -21,7 +21,7 @@ export default function PlayersList() {
 
     return (
         <div className="dropdown dropdown-start">
-            <label tabIndex={0} className="btn btn-sm btn-outline p-1 px-3 rounded-l-none">
+            <label tabIndex={0} className="btn btn-xs sm:btn-sm btn-outline p-1 px-3 rounded-l-none">
                 <FontAwesomeIcon icon={faGlasses} />
             </label>
             <div className="dropdown-content menu shadow -right-24 w-64 rounded-b-box bg-base-300">

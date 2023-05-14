@@ -69,7 +69,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
         <>
             {isQuestioner &&
                 <button
-                    className={`w-36 btn btn-secondary btn-sm ml-1 mb-1 ${winnerGroup ? "" : "btn-disabled"} ${processing ? "loading":""}`}
+                    className={`w-36 btn btn-secondary btn-xs sm:btn-sm ml-1 mb-1 ${winnerGroup ? "" : "btn-disabled"} ${processing ? "loading":""}`}
                     onClick={handleSubmitWinner}
                 >
                     {processing ? "" : "Pick"}

@@ -184,7 +184,13 @@ out:
             $usedCards = $this->gameRoom->userAnswerCards;
 
             Log::debug("drawing cards. blank_card_rate = {$this->gameRoom->blank_card_rate}");
-            $drawBlankCard = rand(1, floor(100/$this->gameRoom->blank_card_rate)) == 1;
+
+            $drawBlankCard = false;
+
+            if ($this->gameRoom->blank_card_rate > 0)
+            {
+                $drawBlankCard = rand(1, floor(100/$this->gameRoom->blank_card_rate)) == 1;
+            }
 
             $drawnCard = null;
 
@@ -275,30 +281,27 @@ out:
     {
         parent::boot();
 
-        self::updating(function($user)
+        self::updated(function($user)
         {
-            if (!array_key_exists('game_room_id', $user->original) || !$user->original['game_room_id'])
+            $original = $user->getOriginal();
+            if ($user->wasChanged('game_room_id') &&
+                array_key_exists('game_room_id', $original) && 
+                $original['game_room_id'])
             {
-                return true;
-            }
+                $gameRoom = GameRoom::find($original['game_room_id']);
 
-            if ($user->isDirty('game_room_id'))
-            {
                 $newGameRoomId = $user->game_room_id;
-                $user->game_room_id = $user->original['game_room_id'];
-                $user->dealUserOut();
-                if ($user->gameRoom->current_questioner == $user->id)
-                {
-                    $user->gameRoom->current_questioner = null;
-                    $user->gameRoom->skipGame();
-                    $user->gameRoom->save();
-                }
-                if ($user->gameRoom->owner_id == $user->id)
-                {
-                    $user->gameRoom->owner_id = null;
-                    $user->gameRoom->save();
-                }
 
+                $user->game_room_id = $gameRoom->id;
+
+                $user->dealUserOut();
+
+                if ($gameRoom->current_questioner == $user->id)
+                {
+                    $gameRoom->current_questioner = null;
+                    $gameRoom->skipGame();
+                    $gameRoom->save();
+                }
                 $user->game_room_id = $newGameRoomId;
                 $user->points = 0;
 
@@ -308,11 +311,32 @@ out:
                     Log::debug("player updated to {$user->playing_status}, setting points and turn");
                     $user->turn_index = $user->gameRoom->lastTurnPlayer()->turn_index + 1;
                 }
+                $user->saveQuietly();
             }
 
             if ($user->gameRoom)
             {
-                if ($user->isDirty('playing_status'))
+                if ($user->voted && $user->gameRoom !== "prestart")
+                {
+                    Log::debug("user->gameRoom->countVotes()");
+                    $user->gameRoom->countVotes();
+                    $user->gameRoom->save();
+                }
+
+                if ($user->wasChanged('connected'))
+                {
+                    if (!$user->connected && $user->gameRoom)
+                    {
+                        Log::debug("user disconnected, going to spectator");
+                        if ($user->playing_status == "playing")
+                        {
+                            $user->playing_status = 'spectating';
+                            $user->saveQuietly();
+                        }
+                    }
+                }
+        
+                if ($user->wasChanged('playing_status'))
                 {
                     Log::debug("playing status changed");
                     if ($user->playing_status === "playing")
@@ -323,7 +347,14 @@ out:
                         $user->turn_index = $user->gameRoom->lastTurnPlayer()->turn_index + 1;
 
                         $user->dealUserIn();
-                        $user->ready = $user->gameRoom->progressPlayerReadyState();
+                        if ($user->gameRoom->current_questioner === $user->id)
+                        {
+                            $user->ready = $user->gameRoom->progressQuestionerReadyState();
+                        }
+                        else {
+                            $user->ready = $user->gameRoom->progressPlayerReadyState();
+                        }
+                        $user->saveQuietly();
                     }
                     else {
                         if ($user->gameRoom->current_questioner == $user->id)
@@ -332,42 +363,20 @@ out:
                             $user->gameRoom->skipGame();
                             $user->gameRoom->save();
                         }
+                        else {
+                            $user->gameRoom->countReady();
+                            $user->gameRoom->save();
+                        }
                     }
-                }
-                else 
-                {
-                    Log::debug("playing status did not change");
                 }
             }
             else {
-                Log::debug("no game room");
                 $user->turn_index = 0;
                 $user->voted = false;
-            }
-            return true;
-        });
-
-        self::updated(function($user)
-        {
-            if ($user->gameRoom && $user->voted && $user->gameRoom !== "prestart")
-            {
-                Log::debug("user->gameRoom->countVotes()");
-                $user->gameRoom->countVotes();
-                $user->gameRoom->save();
+                $user->saveQuietly();
             }
 
-            if ($user->wasChanged('connected'))
-            {
-                if (!$user->connected && $user->gameRoom)
-                {
-                    Log::debug("user disconnected, going to spectator");
-                    if ($user->playing_status == "playing")
-                    {
-                        $user->playing_status = 'spectating';
-                        $user->save();
-                    }
-                }
-            }
+
 
             if ($user->wasChanged('playing_status'))
             {
@@ -386,6 +395,8 @@ out:
                     $this->save();
                 }
             }
+
+
             Log::debug("user updated");
             return true;
         });

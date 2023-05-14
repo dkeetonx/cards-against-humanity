@@ -18,7 +18,7 @@ export default function PlayersList() {
 
     return (
         <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-sm btn-outline p-1 px-3 rounded-r-none">
+            <label tabIndex={0} className="btn btn-xs sm:btn-sm btn-outline p-1 px-3 rounded-r-none">
                 <FontAwesomeIcon icon={faGamepad} />
             </label>
             <div className="dropdown-content menu shadow -left-24 flex flex-col w-64 rounded-b-box bg-base-300">

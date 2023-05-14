@@ -34,13 +34,13 @@ export default function Create(props) {
 
 
     const [formData, setFormData] = useState({
-        max_player_count: 16,
+        max_player_count: 24,
         winning_score: 5,
         has_waiting_room: false,
         two_question_cards: false,
         allow_hand_redraw: true,
-        question_card_timer: 2,
-        answer_card_timer: 5,
+        question_card_timer: 1,
+        answer_card_timer: 2,
         blank_card_rate: 8,
     });
 

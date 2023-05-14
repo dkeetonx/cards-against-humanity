@@ -12,6 +12,7 @@ import {
 
 export default function AnswerCard({ uac, onClick, selectable = true, selected = false, pick, of }) {
     const blankCard = useSelector(state => selectBlankById(state, uac?.id));
+    const [isDirty, setIsDirty] = useState(false);
     const [customAnswer, setCustomAnswer] = useState("");
     const [charsRemaining, setCharsRemaining] = useState(100);
     const [saveTimer, setSaveTimer] = useState(null);
@@ -38,6 +39,7 @@ export default function AnswerCard({ uac, onClick, selectable = true, selected =
                 else if (blankCard) {
                     dispatch(removeBlankCard(blankCard.user_answer_card_id));
                 }
+                setIsDirty(false);
             }, 1000)
         );
 
@@ -51,6 +53,7 @@ export default function AnswerCard({ uac, onClick, selectable = true, selected =
         }
         setCharsRemaining(newCharsRemaining);
         setCustomAnswer(event.target.value);
+        setIsDirty(true);
     }
 
     return (
@@ -78,7 +81,7 @@ export default function AnswerCard({ uac, onClick, selectable = true, selected =
                                     onChange={handleChange}
                                     value={customAnswer}
                                 />
-                                {blankCard?.user_answer_card_id ?
+                                {(blankCard?.user_answer_card_id && !isDirty) ?
                                     <p><input type="checkbox" checked={true} className="checkbox checkbox-success" readOnly /></p>
                                     : <p>{charsRemaining}<input type="checkbox" checked={true} className="checkbox checkbox-success invisible" readOnly /></p>
                                 }

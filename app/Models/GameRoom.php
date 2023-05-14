@@ -113,17 +113,23 @@ class GameRoom extends Model
         $questionerTurnIndex = $this->questioner() ? $this->questioner()->turn_index : 0;
 
         $next = $this->players()->orderBy('turn_index', 'asc')
-            ->where('connected', '=', true)
-            ->where('turn_index', '>', $questionerTurnIndex)
-            ->first();
-        if (!$next)
+                ->where('turn_index', '>', $questionerTurnIndex);
+
+        if (config('app.env') != 'local')
+        {
+            $next->where('connected', '=', true);
+        }
+
+        if ($next->count() < 1)
         {
             Log::debug("nextTurnPlayer rolling over");
-            $next = $this->players()->orderBy('turn_index', 'asc')
-                ->where('connected', '=', true)
-                ->first();
+            $next = $this->players()->orderBy('turn_index', 'asc');
+            if (config('app.env') != 'local')
+            {
+                $next->where('connected', '=', true);
+            }
         }
-        return $next;
+        return $next->first();
     }
 
     public function lastTurnPlayer()
@@ -154,7 +160,7 @@ class GameRoom extends Model
         {
             if ($player->ready && !$player->voted)
             {
-                Log::debug("skipping because player {$player->name} did not vote");
+                Log::debug("not skipping because player {$player->name} did not vote");
                 $skip = false;
                 break;
             }
@@ -176,11 +182,17 @@ class GameRoom extends Model
 
     public function countReady()
     {
+        Log::debug("countReady() called");
         $progress = true;
         foreach ($this->players as $player)
         {
             if (!$player->ready)
             {
+                Log::debug("blocking progress because player({$player->id}) was not ready");
+                if ($this->current_questioner == $player->id)
+                {
+                    Log::debug("current_questioner({$player->id}) was not ready");
+                }
                 $progress = false;
                 break;
             }
@@ -212,7 +224,6 @@ class GameRoom extends Model
             Log::debug("setting player {$player->name} ready");
             if ($this->questioner() && $this->current_questioner === $player->id)
             {
-                Log::debug("skipping because they're the questioner");
                 continue;
             }
 
@@ -397,11 +408,11 @@ class GameRoom extends Model
         parent::boot();
         self::updating(function($gameRoom)
         {
-            if ($gameRoom->progress === $gameRoom->original['progress'])
+            if ($gameRoom->isDirty('progress'))
             {
-                return true;
+                $gameRoom->{$gameRoom->progress}();
+                Log::debug("GameRoom final progress = {$gameRoom->progress}");
             }
-            $gameRoom->{$gameRoom->progress}();
             return true;
         });
 
@@ -435,7 +446,16 @@ class GameRoom extends Model
 
     public function choosing_qcard()
     {
-        Log::debug("updated to deal");
+        Log::debug("updated to choosing_qcard");
+
+        $playerCount = $this->players->count();
+        if ($playerCount < 2)//3)
+        {
+            Log::debug("Only found {$playerCount} players, setting progress to prestart");
+            $this->progress = 'prestart';
+            $this->prestart();
+            return;
+        }
 
         Log::debug("setting new questioner");
         $questioner = $this->nextTurnPlayer();
@@ -504,7 +524,7 @@ class GameRoom extends Model
         $this->deadline_at = Carbon::now()->addMinutes($this->answer_card_timer);
 
         $this->saveAllUsers();
-        $this->saveAllCards();    
+        $this->saveAllCards();
     }
 
     public function picking_winner()
@@ -517,12 +537,16 @@ class GameRoom extends Model
             return;
         }
 
-        if ($this->userAnswerCards->where('status','=','in_play')->count() < 1)
+        $answerCount = $this->userAnswerCards->where('status','=','in_play')->count();
+        if ($answerCount < 1)
         {
-            Log::debug("picking_winner: Skipping to next because no cards in_play");
+            Log::debug("picking_winner: Skipping to next because not enough cards in play {$answerCount}");
             $this->progressGame();
             $this->{$this->progress}();
             return;
+        }
+        else {
+            Log::debug("picking_winner: answer cards in play = {$answerCount}");
         }
 
         $this->setPlayersNotVoted();
@@ -545,12 +569,6 @@ class GameRoom extends Model
             return;
         }
 
-        $this->setPlayersNotVoted();
-        $this->setPlayersDefaultReady();
-        $this->questioner()->ready = $this->progressQuestionerReadyState();
-        $this->questioner()->voted = false;
-        $this->questioner()->save();
-
         Log::debug("revaling_winner");
         if (!$this->winning_group_id)
         {
@@ -561,6 +579,13 @@ class GameRoom extends Model
         }
         else {
             Log::debug("winning_group_id was not null");
+
+            $this->setPlayersNotVoted();
+            $this->setPlayersDefaultReady();
+            $this->questioner()->ready = $this->progressQuestionerReadyState();
+            $this->questioner()->voted = false;
+            $this->questioner()->save();
+
             foreach ($this->players as $player)
             {
                 if ($player->id == $this->winning_group_id)

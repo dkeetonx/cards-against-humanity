@@ -212,7 +212,7 @@ class GameController extends Controller
         {
             if ($targetUser->gameRoom->progress == "prestart")
             {
-                $targetUser->playing_stagtus = "playing";
+                $targetUser->playing_status = "playing";
             }
             else {
                 $targetUser->playing_status = "spectating";

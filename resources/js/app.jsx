@@ -40,6 +40,7 @@ import LeaveModal from './Features/Game/LeaveModal';
 import RedrawModal from './Features/Game/RedrawModal';
 import Snackbar from './Features/Overlays/Snackbar';
 import Spectating from './Features/Overlays/Spectating';
+import Questioning from './Features/Overlays/Questioning';
 
 const router = createBrowserRouter([
     {
@@ -50,22 +51,22 @@ const router = createBrowserRouter([
             {
                 path: "/",
                 element: <Home />,
-                loader: () => document.title = "Home - Cards Against Humanity Online",
+                loader: () => document.title = "Cards Against Humanity Online - Home",
             },
             {
                 path: "/play/:playCode",
                 element: <Game />,
-                loader: () => document.title = "Game - Cards Against Humanity Online",
+                loader: () => document.title = "Cards Against Humanity Online - Game",
             },
             {
                 path: "/join/:urlRoomCode?",
                 element: <JoinDialog />,
-                loader: () => document.title = "Join - Cards Against Humanity Online",
+                loader: () => document.title = "Cards Against Humanity Online - Join",
             },
             {
                 path: "/create",
                 element: <Create />,
-                loader: () => document.title = "Create - Cards Against Humanity Online",
+                loader: () => document.title = "Cards Against Humanity Online - Create",
             }
         ],
     },
@@ -120,6 +121,7 @@ function Layout(props) {
             {/*<Footer />*/}
             <LeaveModal />
             <RedrawModal />
+            <Questioning />
             <Spectating />
         </>
     );

@@ -75,7 +75,7 @@ export default function Game() {
     useEffect(() => {
         dispatch(fetchQuestionCards()).unwrap();
         dispatch(fetchAnswerCards()).unwrap();
-    }, [gameProgress, playingStatus, dispatch]);
+    }, [gameProgress, playingStatus, currentQuestionerId, dispatch]);
 
     const [isQuestioner, setIsQuestioner] = useState(false);
     useEffect(() => {
@@ -198,7 +198,7 @@ export default function Game() {
                         </div>
                         {isQuestioner && gameProgress === "choosing_qcard" &&
                             <button
-                                className={`w-36 btn btn-secondary btn-sm ml-1 ${questionCardId === 0 ? "btn-disabled" : ""} ${processing ? "loading" : ""}`}
+                                className={`w-36 btn btn-secondary btn-xs sm:btn-sm ml-1 ${questionCardId === 0 ? "btn-disabled" : ""} ${processing ? "loading" : ""}`}
                                 onClick={handleQuestionCardSubmit}
                             >
                                 {processing ? "" : "Pick"}
@@ -208,11 +208,11 @@ export default function Game() {
 
                         <div className="flex flex-row items-center">
                             <input type="checkbox"
-                                className="toggle m-1"
+                                className="toggle toggle-sm m-1"
                                 checked={!wrap}
                                 onChange={() => setWrap(!wrap)}
                             />
-                            <div className="">
+                            <div className="text-sm">
                                 <p>
                                     {gameProgress === "choosing_qcard" &&
                                         (isQuestioner ?

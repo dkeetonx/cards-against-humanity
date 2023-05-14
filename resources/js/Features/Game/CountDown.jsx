@@ -130,6 +130,13 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         return () => clearInterval(interval);
     }, [deadline, playingStatus, currentUserReady, animate]);
 
+
+    useEffect(() => {
+        if (btnEnabled && isQuestioner && gameProgress === "revealing_winner") {
+            handleButtonClicked();
+        }    
+    }, [gameProgress, btnEnabled, dispatch]);
+
     const [btnData, setBtnData] = useState(SKIP);
     useEffect(() => {
         switch (gameProgress) {
@@ -184,19 +191,19 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
         return zeroString + n;
     }
 
-    const groupLook = "w-20 p-2 border border-neutral-content rounded-btn text-lg"
+    const groupLook = "w-14 sm:w-20 sm:p-2 border border-neutral-content rounded-btn text-sm sm:text-lg"
     return (
         <div className="flex flex-row bg-base-200 rounded-btn">
             <Share className={`flex items-center justify-center rounded-r-none ${groupLook}`} />
             <div className={`flex items-center justify-center border-x-0 rounded-none ${groupLook}`}>
-                <span className={`${animate ? "countdown" :""} font-mono text-xl`}>
+                <span className={`${animate ? "countdown" :""} font-mono text-sm sm:text-xl`}>
                     <span ref={minutesElRef}>00</span>:
                     <span ref={secondsElRef}>00</span>
                 </span>
 
             </div>
             <button
-                className={`btn btn-primary btn-md rounded-l-none normal-case ${groupLook} ${!btnEnabled ? "btn-disabled" : "animate-none"} ${processing ? "loading" : ""}`}
+                className={`btn btn-primary btn-sm sm:btn-md rounded-l-none normal-case ${groupLook} ${!btnEnabled ? "btn-disabled" : "animate-none"} ${processing ? "loading" : ""}`}
                 onClick={handleButtonClicked}
             >
                 {processing ?

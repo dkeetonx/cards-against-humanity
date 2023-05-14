@@ -17,7 +17,7 @@ export default function Home(props) {
                 <div className="card w-64 sm:w-80 h-60 bg-base-300 shadow-lg my-2 sm:m-4">
                     <div className="card-body">
                         <h2 className="card-title">Join a game.</h2>
-                        <p>Did someone give you a 4 digit game code?</p>
+                        <p>Use your a 4 digit game code to join a game!</p>
                         <div className="card-actions justify-end">
                             <Link to="/join" className="btn btn-primary">Join a Game</Link>
                         </div>

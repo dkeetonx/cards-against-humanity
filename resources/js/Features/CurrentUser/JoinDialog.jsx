@@ -45,7 +45,7 @@ export default function JoinDialog(props) {
             setShouldRedirect(false);
             navigate(`/play/${gameCode}`);
         }
-    }, [gameId, dispatch]);
+    }, [gameId, shouldRedirect, dispatch]);
 
     async function handleSubmit(event) {
         event.preventDefault();

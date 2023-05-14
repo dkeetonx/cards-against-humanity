@@ -83,14 +83,14 @@ export default function PlayerHand({ wrap }) {
         <>
             <div className="flex flex-row space-x-2">
                 <button
-                    className={`w-36 btn btn-secondary btn-sm ml-1 mb-1 ${picks >= answerCount ? "" : "btn-disabled"} ${processing ? "loading" : ""}`}
+                    className={`w-36 btn btn-secondary btn-xs sm:btn-sm ml-1 mb-1 ${picks >= answerCount ? "" : "btn-disabled"} ${processing ? "loading" : ""}`}
                     onClick={handleAnswersSubmit}
                 >
                     {processing ? "" : "Pick"}
                 </button>
                 <div className="tooltip" data-tip="Redraw Hand">
                     <button
-                        className={"btn btn-square btn-sm " + (hasFreeRedraw ? "" : "btn-disabled")}
+                        className={"btn btn-square btn-xs sm:btn-sm " + (hasFreeRedraw ? "" : "btn-disabled")}
                         onClick={handleRedrawHand}
                     >
                         <FontAwesomeIcon icon={faStar} />
