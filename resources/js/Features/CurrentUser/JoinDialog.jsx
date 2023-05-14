@@ -41,11 +41,11 @@ export default function JoinDialog(props) {
     }, [userName]);
 
     useEffect(() => {
-        if (shouldRedirect) {
+        if (shouldRedirect && gameCode) {
             setShouldRedirect(false);
             navigate(`/play/${gameCode}`);
         }
-    }, [gameId, shouldRedirect, dispatch]);
+    }, [gameCode, shouldRedirect, dispatch]);
 
     async function handleSubmit(event) {
         event.preventDefault();

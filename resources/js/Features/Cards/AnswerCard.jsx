@@ -5,10 +5,6 @@ import {
     upsertBlankCard,
     removeBlankCard,
 } from './cardsSlice';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faCheck
-} from '@fortawesome/free-solid-svg-icons';
 
 export default function AnswerCard({ uac, onClick, selectable = true, selected = false, pick, of }) {
     const blankCard = useSelector(state => selectBlankById(state, uac?.id));
@@ -28,7 +24,6 @@ export default function AnswerCard({ uac, onClick, selectable = true, selected =
         clearTimeout(saveTimer);
         setSaveTimer(
             setTimeout(() => {
-                console.log("saving custom answer card");
                 if (customAnswer.length > 1) {
                     dispatch(upsertBlankCard({
                         user_answer_card_id: uac.id,
