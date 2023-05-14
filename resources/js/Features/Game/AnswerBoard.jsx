@@ -8,17 +8,22 @@ import {
     selectAnswerCount,
     selectWinningGroupId,
     submitWinner,
+    selectCurrentQuestionerId,
 } from './gameSlice';
 import { selectAllPlaying, selectAllUsers } from '../Users/usersSlice';
 import AnswerCard from '../Cards/AnswerCard';
 
+import pseudoRandom from 'pseudo-random';
+
 export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
     const winningGroupId = useSelector(selectWinningGroupId);
+    const currentQuestionerId = useSelector(selectCurrentQuestionerId);
     const answerCards = useSelector(selectAllAnswerCards);
     const answerCount = useSelector(selectAnswerCount);
     const users = useSelector(selectAllUsers);
     const dispatch = useDispatch();
 
+    const [groupIds, setGroupIds] = useState([]);
     const [groups, setGroups] = useState({});
     useEffect(() => {
         let newGroups = {};
@@ -33,8 +38,9 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                 };
             }
         }
+        setGroupIds(shuffle(Object.keys(newGroups), currentQuestionerId));
         setGroups(newGroups);
-    }, [answerCards, users]);
+    }, [answerCards, currentQuestionerId, users]);
 
     async function handleRevealCard(uac) {
 
@@ -69,7 +75,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
         <>
             {isQuestioner &&
                 <button
-                    className={`w-36 btn btn-secondary btn-xs sm:btn-sm ml-1 mb-1 ${winnerGroup ? "" : "btn-disabled"} ${processing ? "loading":""}`}
+                    className={`w-36 btn btn-secondary btn-xs sm:btn-sm ml-1 mb-1 ${winnerGroup ? "" : "btn-disabled"} ${processing ? "loading" : ""}`}
                     onClick={handleSubmitWinner}
                 >
                     {processing ? "" : "Pick"}
@@ -80,7 +86,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                 :
                 "flex flex-rows w-full overflow-auto justify-start h-54 space-x-2 pb-2"
             }>
-                {Object.keys(groups).map(user_id => (
+                {groupIds.map(user_id => (
                     <div key={user_id} className={`relative card flex flex-row ${answerCount > 1 ? "mt-1 border-t-4 border-primary" : ""}`}>
                         {groups[user_id].cards.filter(uac => uac.status == "in_play").map(uac => (
                             uac.revealed ?
@@ -117,4 +123,25 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
             </div>
         </>
     )
+}
+
+function shuffle(array, seed) {
+    console.log("shuffling");
+    const prng = pseudoRandom(seed);
+
+    let currentIndex = array.length, randomIndex;
+
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+
+        // Pick a remaining element.
+        randomIndex = Math.floor(prng.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
 }

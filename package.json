@@ -27,6 +27,7 @@
         "@fortawesome/free-solid-svg-icons": "^6.4.0",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@reduxjs/toolkit": "^1.9.3",
+        "pseudo-random": "^0.6.0",
         "react-copy-to-clipboard": "^5.1.0",
         "react-redux": "^8.0.5",
         "theme-change": "^2.3.0"

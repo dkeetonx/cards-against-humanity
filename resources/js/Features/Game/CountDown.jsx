@@ -132,10 +132,10 @@ export default function Countdown({ className, isQuestioner, onDeadline }) {
 
 
     useEffect(() => {
-        if (btnEnabled && isQuestioner && gameProgress === "revealing_winner") {
+        if (elapsed && isQuestioner && gameProgress === "revealing_winner") {
             handleButtonClicked();
         }    
-    }, [gameProgress, btnEnabled, dispatch]);
+    }, [gameProgress, elapsed, isQuestioner, dispatch]);
 
     const [btnData, setBtnData] = useState(SKIP);
     useEffect(() => {

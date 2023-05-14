@@ -72,7 +72,6 @@ export const redrawHand = createAsyncThunk(
 
 const cardsAdapter = createEntityAdapter({
     sortComparer: (a, b) => {
-        console.log("sorting cards");
         const userOrder = (a.user_id - b.user_id);
         if (userOrder == 0)
             return (a.order - b.order);
