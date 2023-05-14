@@ -288,6 +288,22 @@ class GameRoom extends Model
         }
     }
 
+    public function trashCardsInHand()
+    {
+        foreach ($this->userAnswerCards->where('status', '=', 'in_hand') as $uac)
+        {
+            Log::debug("trashing acard {$uac->id}");
+            $uac->status = 'in_trash';
+            $uac->save();
+        }
+        foreach ($this->userQuestionCards->where('status', '=', 'in_hand') as $uqc)
+        {
+            Log::debug("trashing qcard {$uqc->id}");
+            $uqc->status = "in_trash";
+            $uqc->save();
+        }
+    }
+
     public function checkForWinner()
     {
         $endGame = false;
@@ -432,6 +448,7 @@ class GameRoom extends Model
     {
         Log::debug("updated to prestart");
         $this->trashCardsInPlay();
+        $this->trashCardsInHand();
         $this->setPlayersNotVoted();
         $this->setPlayersDefaultReady();
         $this->setPlayersPowerups();
