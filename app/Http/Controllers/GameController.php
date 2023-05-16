@@ -547,10 +547,13 @@ class GameController extends Controller
     {
         foreach ($request->events as $event)
         {
+            Log::debug("event: ".json_encode($event));
+
             if (!array_key_exists('user_id', $event))
             {
                 return [];
             }
+
             if (!array_key_exists('name', $event))
             {
                 return [];
@@ -564,6 +567,17 @@ class GameController extends Controller
                     Log::debug(" member_added: {$user->id}");
                     $user->connected = true;
                     $user->save();
+                    if ($user->gameRoom)
+                    {
+                        Log::debug("User connected so, Broadcasting GameUpdated event");
+                        event(new \App\Events\GameUpdated($user->gameRoom));
+
+                        foreach ($user->gameRoom->users as $peer)
+                        {
+                            Log::debug("User ($user->id} connected, Broadcasting user: {$peer->id}");
+                            event(new \App\Events\UserUpdated($peer));
+                        }
+                    }
                     return [];
 
                 case "member_removed":
@@ -576,7 +590,6 @@ class GameController extends Controller
                 default:
                     //ignored
             }
-            Log::debug("event: ".json_encode($event));
         }
         return [];
     }

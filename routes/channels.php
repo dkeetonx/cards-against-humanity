@@ -26,5 +26,5 @@ Broadcast::channel('App.Models.GameRoom.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('WaitingRoom.{id}', function ($user, $id) {
-    return [ $user ];
+    return [ 'id' => $user->id, 'name' => $user->name ];
 });

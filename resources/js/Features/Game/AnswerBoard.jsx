@@ -38,7 +38,10 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                 };
             }
         }
-        setGroupIds(shuffle(Object.keys(newGroups), currentQuestionerId));
+        const newGroupIds = shuffle(Object.keys(newGroups), currentQuestionerId);
+        console.log(newGroupIds);
+        console.log(newGroups);
+        setGroupIds(newGroupIds);
         setGroups(newGroups);
     }, [answerCards, currentQuestionerId, users]);
 
