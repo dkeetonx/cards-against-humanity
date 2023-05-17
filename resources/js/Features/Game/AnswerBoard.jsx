@@ -130,20 +130,16 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
 
 function shuffle(array, seed) {
     console.log("shuffling");
+    if (array.length < 2)
+        return array;
+
     const prng = pseudoRandom(seed);
 
-    let currentIndex = array.length, randomIndex;
-
-    // While there remain elements to shuffle.
-    while (currentIndex != 0) {
-
-        // Pick a remaining element.
-        randomIndex = Math.floor(prng.random() * currentIndex);
-        currentIndex--;
-
-        // And swap it with the current element.
-        [array[currentIndex], array[randomIndex]] = [
-            array[randomIndex], array[currentIndex]];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(prng.random() * (i + 1));
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
     }
 
     return array;
