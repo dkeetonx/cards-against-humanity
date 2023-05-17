@@ -16,7 +16,7 @@ class StagingCorsMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if (app('app.env') === 'staging')
+        if (config('app.env') === 'staging')
         {
             return $next($request)
                 ->header('Access-Control-Allow-Origin', '*')
