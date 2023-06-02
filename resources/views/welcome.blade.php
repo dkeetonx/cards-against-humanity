@@ -6,11 +6,7 @@
 
         <title>Cards Against Humanity</title>
 
-        <style>
-            body {
-                font-family: 'Nunito', sans-serif;
-            }
-        </style>
+
     </head>
     <body class="h-screen flex flex-col overflow-clip landscape:overflow-auto min-h-[40rem]">
         <div id="app" class="grow-0 flex flex-col bg-base-100 h-full"></div>
