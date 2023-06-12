@@ -18,11 +18,11 @@ export default function StatusBoard({ wrap }) {
             "flex flex-rows w-full overflow-auto justify-start h-54 pb-2"
         }>
             {players.map(player => {
-                    if (player.id === currentQuestionerId) {
+                    if (player.id == currentQuestionerId) {
                         return "";
                     }
                     if (player.ready) {
-                        return <AnswerCard key={player.id} />;
+                        return <AnswerCard key={player.id} selectable={player.id == currentQuestionerId} />;
                     }
                     else {
                         return <PlaceholderCard user={player} key={player.id} />
