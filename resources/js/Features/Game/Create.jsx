@@ -41,7 +41,7 @@ export default function Create(props) {
         allow_hand_redraw: true,
         question_card_timer: 1,
         answer_card_timer: 2,
-        blank_card_rate: 8,
+        blank_card_rate: 15,
     });
 
     const [formErrors, setFormErrors] = useState(
@@ -211,7 +211,7 @@ export default function Create(props) {
                     />
 
                     <Range
-                        min="1" max="15" value={formData.blank_card_rate}
+                        min="1" max="25" value={formData.blank_card_rate}
                         label="Blank Card Rate" name="blank_card_rate"
                         valueLabelExtraClasses="w-24 px-2"
                         formatValue={(v) => `${v}%`}
