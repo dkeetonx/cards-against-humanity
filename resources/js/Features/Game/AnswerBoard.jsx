@@ -10,6 +10,7 @@ import {
     submitWinner,
     selectCurrentQuestionerId,
 } from './gameSlice';
+import { selectCurrentUserId } from '../CurrentUser/currentUserSlice';
 import { selectAllPlaying, selectAllUsers } from '../Users/usersSlice';
 import AnswerCard from '../Cards/AnswerCard';
 
@@ -18,6 +19,7 @@ import pseudoRandom from 'pseudo-random';
 export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
     const winningGroupId = useSelector(selectWinningGroupId);
     const currentQuestionerId = useSelector(selectCurrentQuestionerId);
+    const currentUserId = useSelector(selectCurrentUserId);
     const answerCards = useSelector(selectAnswerCardsInPlay);
     const answerCount = useSelector(selectAnswerCount);
     const users = useSelector(selectAllUsers);
@@ -94,7 +96,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                                 <AnswerCard
                                     key={uac.id}
                                     uac={uac}
-                                    selectable={true}
+                                    selectable={currentUserId == currentQuestionerId}
                                     selected={winnerGroup == uac.user_id}
                                     pick={uac.order}
                                     of={answerCount}
@@ -104,6 +106,7 @@ export default function AnswerBoard({ wrap, isQuestioner, reveal = false }) {
                                 <AnswerCard
                                     key={uac.id}
                                     onClick={() => handleRevealCard(uac)}
+                                    selectable={currentUserId == currentQuestionerId}
                                 />
                         ))}
                         {reveal &&

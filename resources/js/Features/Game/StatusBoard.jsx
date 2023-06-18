@@ -17,12 +17,9 @@ export default function StatusBoard({ wrap }) {
             :
             "flex flex-rows w-full overflow-auto justify-start h-54 pb-2"
         }>
-            {players.map(player => {
-                    if (player.id == currentQuestionerId) {
-                        return "";
-                    }
+            {players.filter(p => p.id != currentQuestionerId).map(player => {
                     if (player.ready) {
-                        return <AnswerCard key={player.id} selectable={player.id == currentQuestionerId} />;
+                        return <AnswerCard key={player.id} selectable={false} />;
                     }
                     else {
                         return <PlaceholderCard user={player} key={player.id} />
