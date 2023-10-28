@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\GameRoom;
 use App\Models\GameDeckPack;
 use App\Models\User;
@@ -299,8 +300,10 @@ class GameController extends Controller
         }
 
         return $user->gameRoom->userQuestionCards()
-            ->where('status', '=', 'in_hand')
-            ->orWhere('status', '=', 'in_play')
+            ->where(function (Builder $query) {
+                $query->where('status', '=', 'in_hand')
+                      ->orWhere('status', '=', 'in_play');
+            })
             ->with('card')
             ->get();
     }

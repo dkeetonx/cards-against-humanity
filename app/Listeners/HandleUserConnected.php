@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\UserConnected;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Database\Eloquent\Builder;
 use Log;
 
 class HandleUserConnected
@@ -55,8 +56,10 @@ class HandleUserConnected
             }
 
             $questionCards = $user->gameRoom->userQuestionCards()
-                ->where('status', '=', 'in_play')
-                ->orWhere('status', '=', 'in_hand')
+                ->where(function (Builder $query) {
+                    $query->where('status', '=', 'in_play')
+                          ->orWhere('status', '=', 'in_hand');
+                })
                 ->get();
 
             foreach ($questionCards as $uqc)
@@ -65,8 +68,10 @@ class HandleUserConnected
             }
 
             $answerCards = $user->userACards()
-                ->where('status', '=', 'in_hand')
-                ->orWhere('status', '=', 'in_play')
+                ->where(function (Builder $query) {
+                    $query->where('status', '=', 'in_play')
+                          ->orWhere('status', '=', 'in_hand');
+                })
                 ->get();
 
             foreach ($answerCards as $uac)
